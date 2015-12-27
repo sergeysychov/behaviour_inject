@@ -38,19 +38,8 @@ namespace BehaviourInject
         void Awake()
         {
             _context = ContextRegistry.GetContext(_contextName);
-
-            /*Stopwatch watch = new Stopwatch();
-            int iteartions = 10000;
-            watch.Start();
-
-            for (int i = 0; i < iteartions; i++)
-            {*/
-            FindAndResolveDependencies();
-            /*}
             
-            watch.Stop();
-
-            Debug.Log(String.Format("{0} ms for {1} iterations", watch.ElapsedMilliseconds, iteartions));*/
+            FindAndResolveDependencies();
         }
 
 
@@ -83,10 +72,10 @@ namespace BehaviourInject
                 if (NotForInjection(property))
                     continue;
                 
-                /*object value = property.GetValue(behaviour, null);
+                object value = property.GetValue(behaviour, null);
 
                 if (value != null)
-                    throw new BehaviourInjectException("Property to inject is not null!");*/
+                    throw new BehaviourInjectException("Property to inject is not null!");
 
 
                 object dependency = _context.Resolve(property.PropertyType);
