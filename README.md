@@ -6,8 +6,8 @@ This is very simple inversion of control tool for unity MonoBehaviour.
 
 For most cases you will need only three entities:
 
-* InjectorBehaviour
-* Context
+* Context class
+* InjectorBehaviour behaviour
 * [Inject] attribute
 
 ## Initialization ##
