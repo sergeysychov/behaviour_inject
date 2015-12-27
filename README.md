@@ -4,7 +4,7 @@ This is very simple inversion of control tool for unity MonoBehaviour.
 
 ## How to ##
 
-You should now about only 3 entities:
+For most cases you will need only three entities:
 
 * InjectorBehaviour
 * Context
