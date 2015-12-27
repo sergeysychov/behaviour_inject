@@ -33,7 +33,7 @@ In your MonoBehaviour mark dependency in this way:
 ```
 #!c#
 
-MyBehaviour : MonoBehaviour 
+public class MyBehaviour : MonoBehaviour 
 {
     [Inject]
     public MyDataModel Model { get; private set; }
@@ -55,7 +55,7 @@ You can specify interface injection this way:
 
 ```
 #!c#
-class InitiatorBehavour : MonoBehaviour
+public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
         MockReader model = new MockReader(); //implements IReader
@@ -64,7 +64,7 @@ class InitiatorBehavour : MonoBehaviour
     }
 }
 
-MyBehaviour : MonoBehaviour 
+public class MyBehaviour : MonoBehaviour 
 {
     [Inject]
     public IReader Reader { get; private set; }
