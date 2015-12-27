@@ -18,9 +18,9 @@ Use any of your behavuours that starts BEFORE other behaviours, where you want t
 #!c#
 
 void Awake(){
-> MyDataModel model = new MyDataModel(); //Any of your dependenies
-> Context context = new Context();
-> context.RegisterDependency(model);
+    MyDataModel model = new MyDataModel(); //Any of your dependenies
+    Context context = new Context();
+    context.RegisterDependency(model);
 }
 ```
 
@@ -35,8 +35,8 @@ In your MonoBehaviour mark dependency in this way:
 
 MyBehaviour : MonoBehaviour 
 {
-> [Inject]
-> public MyDataModel Model { get; private set; }
+    [Inject]
+    public MyDataModel Model { get; private set; }
 }
 ```
 
@@ -48,3 +48,33 @@ If you need multiple contexts at once, you may provide context name in it's cons
 If no argument is passed context is named "default".
 
 ! Warning ! You can not have multiple contexts with the same name.
+
+## Interfaces ##
+
+You can specify interface injection this way:
+
+```
+#!c#
+class InitiatorBehavour : MonoBehaviour
+{
+    void Awake(){
+        MockReader model = new MockReader(); //Any of your dependenies
+        Context context = new Context();
+        context2.RegisterDependencyAs<MockReader, IReader>(mockReader);
+    }
+}
+
+MyBehaviour : MonoBehaviour 
+{
+    [Inject]
+    public MyDataModel Model { get; private set; }
+}
+```
+
+## Watch example scene ##
+
+Mechanism is showed in example scene. Use it to see how it works.
+
+## Benchmark ##
+
+On intel i5 3.2Ghz and Unity 5.3 it takes about 50 ms to make 1000 injections.
