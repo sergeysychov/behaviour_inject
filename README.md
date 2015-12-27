@@ -18,9 +18,9 @@ Use any of your behavuours that starts BEFORE other behaviours, where you want t
 #!c#
 
 void Awake(){
- MyDataModel model = new MyDataModel(); //Any of your dependenies
- Context context = new Context();
- context.RegisterDependency(model);
+> MyDataModel model = new MyDataModel(); //Any of your dependenies
+> Context context = new Context();
+> context.RegisterDependency(model);
 }
 ```
 
@@ -35,8 +35,8 @@ In your MonoBehaviour mark dependency in this way:
 
 MyBehaviour : MonoBehaviour 
 {
- [Inject]
- public MyDataModel Model { get; private set; }
+> [Inject]
+> public MyDataModel Model { get; private set; }
 }
 ```
 
