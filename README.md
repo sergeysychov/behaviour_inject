@@ -12,7 +12,7 @@ For most cases you will need only three entities:
 
 ## Initialization ##
 
-Use any of your behavuours that starts BEFORE other behaviours, where you want the injection, to settle this code:
+Use any of your behaviours to settle following code. Make shure that it starts BEFORE other behaviours, where you want the inject properties.
 
 ```
 #!c#
