@@ -58,7 +58,7 @@ You can specify interface injection this way:
 class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
-        MockReader model = new MockReader(); //Any of your dependenies
+        MockReader model = new MockReader(); //implements IReader
         Context context = new Context();
         context2.RegisterDependencyAs<MockReader, IReader>(mockReader);
     }
@@ -67,7 +67,7 @@ class InitiatorBehavour : MonoBehaviour
 MyBehaviour : MonoBehaviour 
 {
     [Inject]
-    public MyDataModel Model { get; private set; }
+    public IReader Reader { get; private set; }
 }
 ```
 
