@@ -45,6 +45,15 @@ namespace BehaviourInject
         }
 
 
+        public static void UnregisterContext(string name)
+        {
+            if(! _contextRegistry.ContainsKey(name))
+                throw new BehaviourInjectException(String.Format("Context \"{0}\" already removed or never existed!", name));
+
+            _contextRegistry.Remove(name);
+        }
+
+
         public static Context GetContext(string name)
         {
             if (!_contextRegistry.ContainsKey(name))

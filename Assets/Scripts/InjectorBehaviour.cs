@@ -38,7 +38,6 @@ namespace BehaviourInject
         void Awake()
         {
             _context = ContextRegistry.GetContext(_contextName);
-            
             FindAndResolveDependencies();
         }
 
@@ -50,7 +49,7 @@ namespace BehaviourInject
             for (int i = 0; i < components.Length; i++)
             {
                 MonoBehaviour behaviour = components[i];
-                
+
                 if (behaviour == this)
                     continue;
 
@@ -68,23 +67,35 @@ namespace BehaviourInject
             for (int i = 0; i < properties.Length; i++)
             {
                 PropertyInfo property = properties[i];
-
-                if (NotForInjection(property))
-                    continue;
-                
-                object value = property.GetValue(behaviour, null);
-
-                if (value != null)
-                    throw new BehaviourInjectException("Property to inject is not null!");
-
+                if (NotForInjection(property)) continue;
+                ThrowIfNotNull(property.GetValue(behaviour, null));
 
                 object dependency = _context.Resolve(property.PropertyType);
                 property.SetValue(behaviour, dependency, null);
             }
+            
+            FieldInfo[] fields = componentType.GetFields();
+
+            for (int i = 0; i < fields.Length; i++)
+            {
+                FieldInfo field = fields[i];
+                if (NotForInjection(field)) continue;
+                ThrowIfNotNull(field.GetValue(behaviour));
+                
+                object dependency = _context.Resolve(field.FieldType);
+                field.SetValue(behaviour, dependency);
+            }
         }
 
 
-        private bool NotForInjection(PropertyInfo property)
+        private void ThrowIfNotNull(object value)
+        {
+            if (value != null)
+                throw new BehaviourInjectException("Property to inject is not null!");
+        }
+
+
+        private bool NotForInjection(MemberInfo property)
         {
             object[] attributes = property.GetCustomAttributes(typeof(InjectAttribute), true);
             return attributes.Length == 0;

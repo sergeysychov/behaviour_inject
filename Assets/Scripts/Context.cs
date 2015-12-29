@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 
 namespace BehaviourInject
@@ -32,6 +33,9 @@ namespace BehaviourInject
     public class Context
     {
         private Dictionary<Type, object> _dependencies;
+        private Dictionary<Type, DependencyFactory> _factories;
+        private HashSet<Type> _autoCompositionTypes;
+        private string _name;
 
         public Context() : this("default")
         { }
@@ -39,8 +43,11 @@ namespace BehaviourInject
 
         public Context(string contextName)
         {
+            _name = contextName;
             ContextRegistry.RegisterContext(contextName, this);
             _dependencies = new Dictionary<Type, object>();
+            _factories = new Dictionary<Type, DependencyFactory>();
+            _autoCompositionTypes = new HashSet<Type>();
         }
 
         public void RegisterDependency<T>(T dependency) {
@@ -66,17 +73,112 @@ namespace BehaviourInject
 
         private void ThrowIfRegistered(Type dependencyType)
         {
-            if (_dependencies.ContainsKey(dependencyType))
+            if (_dependencies.ContainsKey(dependencyType) || _factories.ContainsKey(dependencyType) || _autoCompositionTypes.Contains(dependencyType))
                 throw new BehaviourInjectException(dependencyType.FullName + " is already registered in this context");
+        }
+
+
+        public void RegisterFactory<T>(DependencyFactory factory)
+        {
+            ThrowIfNull(factory, "factory");
+            Type dependencyType = typeof(T);
+            ThrowIfRegistered(dependencyType);
+            _factories.Add(dependencyType, factory);
+        }
+
+
+        public void RegisterFactory<T, FactoryT>()
+        {
+            Type factoryType = typeof(FactoryT);
+            Type dependencyType = typeof(T);
+            ThrowIfRegistered(dependencyType);
+            RegisterType<FactoryT>();
+            DependencyFactory factory = (DependencyFactory)Resolve(factoryType);
+            _factories.Add(dependencyType, factory);
+        }
+
+
+        public void RegisterType<T>()
+        {
+            Type dependencyType = typeof(T);
+            ThrowIfRegistered(dependencyType);
+            _autoCompositionTypes.Add(dependencyType);
         }
 
 
         public object Resolve(Type resolvingType)
         {
-            if (!_dependencies.ContainsKey(resolvingType))
-                throw new BehaviourInjectException(String.Format("Type {0} not registered in this context!", resolvingType.FullName));
+            if (_dependencies.ContainsKey(resolvingType))
+                return _dependencies[resolvingType];
+            else if (_factories.ContainsKey(resolvingType))
+                return _factories[resolvingType].Create();
+            else if (_autoCompositionTypes.Contains(resolvingType))
+                return AutocomposeDependency(resolvingType);
+            else
+                throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+        }
 
-            return _dependencies[resolvingType];
+
+        private object AutocomposeDependency(Type resolvingType)
+        {
+            ConstructorInfo constructor = FindAppropriateConstructor(resolvingType);
+            ParameterInfo[] parameters = constructor.GetParameters();
+            object[] arguments = new object[parameters.Length];
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                ParameterInfo parameter = parameters[i];
+                Type argumentType = parameter.ParameterType;
+
+                if (argumentType == resolvingType)
+                    throw new BehaviourInjectException("Cyclic dependency occured: " + argumentType.FullName);
+
+                arguments[i] = Resolve(argumentType);
+            }
+
+            object result = constructor.Invoke(arguments);
+            _dependencies.Add(resolvingType, result);
+
+            return result;
+        }
+
+
+        private ConstructorInfo FindAppropriateConstructor(Type resolvingType)
+        {
+            ConstructorInfo[] constructors = resolvingType.GetConstructors();
+
+            ConstructorInfo constructorWithLeastArguments = null;
+            int leastParameters = Int32.MaxValue;
+
+            for (int i = 0; i < constructors.Length; i++)
+            {
+                ConstructorInfo constructor = constructors[i];
+
+                if (HasAttribute(constructor))
+                    return constructor;
+
+                int parametersLength = constructor.GetParameters().Length;
+                if (parametersLength < leastParameters)
+                {
+                    constructorWithLeastArguments = constructor;
+                    leastParameters = parametersLength;
+                }
+            }
+
+            return constructorWithLeastArguments;
+        }
+
+
+        private bool HasAttribute(MemberInfo constructor)
+        {
+            object[] attributes = constructor.GetCustomAttributes(typeof(InjectAttribute), true);
+            return attributes.Length > 0;
+        }
+
+        
+        public void Destroy()
+        {
+            ContextRegistry.UnregisterContext(_name);
         }
     }
 }
