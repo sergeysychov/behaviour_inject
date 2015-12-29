@@ -1,4 +1,4 @@
-# Behaviour Inject #
+# Behaviour Inject for Unity3d #
 
 This is very simple inversion of control tool for unity MonoBehaviour.
 
@@ -6,13 +6,13 @@ This is very simple inversion of control tool for unity MonoBehaviour.
 
 For most cases you will need only three entities:
 
-* InjectorBehaviour
-* Context
+* Context class
+* InjectorBehaviour behaviour
 * [Inject] attribute
 
 ## Initialization ##
 
-Use any of your behaviours to settle following code. Make shure that it starts BEFORE other behaviours, where you want the inject properties.
+Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties.
 
 ```
 #!c#
@@ -33,7 +33,7 @@ In your MonoBehaviour mark dependency in this way:
 ```
 #!c#
 
-MyBehaviour : MonoBehaviour 
+public class MyBehaviour : MonoBehaviour 
 {
     [Inject]
     public MyDataModel Model { get; private set; }
@@ -44,7 +44,7 @@ Voila! MyDataModel should be there after Awake of the Injector.
 
 ## Multiple contexts ##
 
-If you need multiple contexts at once, you may provide context name in it's constructor ( new Context("test_context"); ).
+If you need multiple contexts at once, you may provide context name in it's constructor ( new Context("test_context"); ). Then you should specify InjectorBehaviour to use this context by setting сorresponding context name.
 If no argument is passed context is named "default".
 
 ! Warning ! You can not have multiple contexts with the same name.
@@ -55,7 +55,7 @@ You can specify interface injection this way:
 
 ```
 #!c#
-class InitiatorBehavour : MonoBehaviour
+public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
         MockReader model = new MockReader(); //implements IReader
@@ -64,7 +64,7 @@ class InitiatorBehavour : MonoBehaviour
     }
 }
 
-MyBehaviour : MonoBehaviour 
+public class MyBehaviour : MonoBehaviour 
 {
     [Inject]
     public IReader Reader { get; private set; }
