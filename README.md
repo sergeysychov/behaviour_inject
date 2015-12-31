@@ -1,6 +1,10 @@
 # Behaviour Inject for Unity3d #
 
-This is very simple inversion of control tool for unity MonoBehaviour.
+This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a wooden stick. It provides basic features of reflective dependency injection:
+- resolving interfaces;
+- easy injection to MonoBehaviour properties;
+- poco object autocomposition with constructor injection;
+- using factories;
 
 ## How to ##
 
