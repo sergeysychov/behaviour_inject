@@ -1,6 +1,6 @@
 # Behaviour Inject for Unity3d #
 
-This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a wooden stick. There are only 6 script files with approximately 300 lines of code. You may easy handle it, support it or even extend it the way you like. Although it provides crutial features of reflective dependency injection:
+This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a wooden stick. There are only 6 script files with approximately 300 lines of code. You may easily handle it, support it or even extend it in the way you like. Although it provides crutial features of reflective dependency injection:
 - resolving interfaces;
 - injection to MonoBehaviour properties or fields;
 - poco object autocomposition with constructor injection;
@@ -14,7 +14,7 @@ For most cases you will need only three entities:
 * InjectorBehaviour behaviour
 * [Inject] attribute
 
-## Initialization ##
+# Initialization #
 
 Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and InjectorBehaviour.
 
@@ -28,7 +28,7 @@ void Awake(){
 }
 ```
 
-## Injection ##
+# Injection #
 
 Place 'InjectorBehaviour' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
 
@@ -105,8 +105,6 @@ public class MyBehaviour : MonoBehaviour
 }
 ```
 
-Autocomposition creates only one single object of type, keeps it and use for every appropriate injection in current context. If you need to create object for each injection use Factories described below.
-
 Autocomposed type may have multiple constructors. If there are constructors marked by [Inject] attribute, context will use first of it. Thus make shure you have only one [Inject] for construcors. If there are no [Inject] attributes context will prefer constructor with less argument count.
 
 ```
@@ -128,6 +126,8 @@ public class Connection
     }
 }
 ```
+
+Autocomposition creates only one single object of type, keeps it and use for every appropriate injection in current context. If you need to create object for each injection use Factories described below.
 
 ## Factories ##
 
