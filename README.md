@@ -1,8 +1,8 @@
 # Behaviour Inject for Unity3d #
 
-This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a wooden stick. It provides basic features of reflective dependency injection:
+This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a wooden stick. There are only 6 script files with approximately 300 lines of code. You may easy handle it, support it or even extend it the way you like. Although it provides crutial features of reflective dependency injection:
 - resolving interfaces;
-- easy injection to MonoBehaviour properties;
+- injection to MonoBehaviour properties or fields;
 - poco object autocomposition with constructor injection;
 - using factories;
 
@@ -16,7 +16,7 @@ For most cases you will need only three entities:
 
 ## Initialization ##
 
-Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties.
+Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and InjectorBehaviour.
 
 ```
 #!c#
@@ -39,12 +39,17 @@ In your MonoBehaviour mark dependency in this way:
 
 public class MyBehaviour : MonoBehaviour 
 {
+    //it should be public for injection.
     [Inject]
     public MyDataModel Model { get; private set; }
+    
+    //also works with fields. But I still would recommend you to prefer properties in the sake of incapsulation.
+    [Inject]
+    public MyDataModel _model;
 }
 ```
 
-Voila! MyDataModel should be there after Awake of the Injector.
+Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that InjectorBehaviour awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => InjectorBehaviour => InjectionTargets.
 
 ## Multiple contexts ##
 
@@ -75,9 +80,96 @@ public class MyBehaviour : MonoBehaviour
 }
 ```
 
+## Autocomposition ##
+
+BehaviourInject supports simle object hierarchy construction. Thus you may provide to the context only types of wished objects. And then during injection BehaviourInject will automatically create this objects using constructor dependency injection.
+
+```
+#!c#
+public class InitiatorBehavour : MonoBehaviour
+{
+    void Awake(){
+        Settings settings = new Settings("127.9.1.1");
+        Context context1 = new Context();
+        context1.RegisterDependency(settings);
+        context1.RegisterType<Core>();
+        context1.RegisterType<Connection>();
+    }
+}
+
+public class MyBehaviour : MonoBehaviour 
+{
+    //connection is not created directly in your code. But constructed atomatically in Context;
+    [Inject]
+    public Connection Connector { get; set; }
+}
+```
+
+Autocomposition creates only one single object of type, keeps it and use for every appropriate injection in current context. If you need to create object for each injection use Factories described below.
+
+Autocomposed type may have multiple constructors. If there are constructors marked by [Inject] attribute, context will use first of it. Thus make shure you have only one [Inject] for construcors. If there are no [Inject] attributes context will prefer constructor with less argument count.
+
+```
+#!c#
+public class Connection
+{
+    //by default this constructor will be chosen
+    //It is highly recommended to have only one constructor with [Inject] to avoid unpredictable behaviour.
+    [Inject]
+    public Connection(Settings settings)
+    {
+        ....
+    }
+    
+    //if there are no [Inject] for any constructor this one will be preferred
+    public Connection()
+    {
+        ...
+    }
+}
+```
+
+## Factories ##
+
+In case if you needed specific logic of object creation you may use factories. For example if you need to create object at some point at runtime. Or create object each time IoC resolving this type.
+
+Factories also can be eather defined directly in code, or created by autocomposition.
+
+```
+#!c#
+public class InitiatorBehavour : MonoBehaviour
+{
+    void Awake(){
+        Context context1 = new Context();
+        context1.RegisterType<Connection>();
+        context1.RegisterFactory<Game, GameFactory>();
+        //or
+        var factory = new GameFactory(...);
+        context1.RegisterFactory<Game>(factory);
+    }
+}
+
+public class GameFactory : DependencyFactory
+{
+    public GameFactory(Connection connection)
+    {
+        ...
+    }
+
+    public object Create()
+    {
+        if (_connection.Connected)
+            return new Game(1, "connected game");
+        else
+            return null;
+    }
+}
+
+```
+
 ## Watch example scene ##
 
-Mechanism is showed in example scene. Use it to see how it works.
+There are example scenes and behaviours for simple injections, autocompositions and factories. Use it to see the action.
 
 ## Benchmark ##
 
