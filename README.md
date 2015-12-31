@@ -18,9 +18,7 @@ For most cases you will need only three entities:
 
 Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and InjectorBehaviour.
 
-```
-#!c#
-
+```csharp
 void Awake(){
     MyDataModel model = new MyDataModel(); //Any of your dependenies
     Context context = new Context();
@@ -34,9 +32,7 @@ Place 'InjectorBehaviour' at first place in the GameObject, adjacently to your d
 
 In your MonoBehaviour mark dependency in this way:
 
-```
-#!c#
-
+```csharp
 public class MyBehaviour : MonoBehaviour 
 {
     //it should be public for injection.
@@ -62,8 +58,7 @@ If no argument is passed context is named "default".
 
 You can specify interface injection this way:
 
-```
-#!c#
+```csharp
 public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
@@ -84,8 +79,7 @@ public class MyBehaviour : MonoBehaviour
 
 BehaviourInject supports simle object hierarchy construction. Thus you may provide to the context only types of wished objects. And then during injection BehaviourInject will automatically create this objects using constructor dependency injection.
 
-```
-#!c#
+```csharp
 public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
@@ -107,8 +101,7 @@ public class MyBehaviour : MonoBehaviour
 
 Autocomposed type may have multiple constructors. If there are constructors marked by [Inject] attribute, context will use first of it. Thus make shure you have only one [Inject] for construcors. If there are no [Inject] attributes context will prefer constructor with less argument count.
 
-```
-#!c#
+```csharp
 public class Connection
 {
     //by default this constructor will be chosen
@@ -135,8 +128,7 @@ In case if you needed specific logic of object creation you may use factories. F
 
 Factories also can be eather defined directly in code, or created by autocomposition.
 
-```
-#!c#
+```csharp
 public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
