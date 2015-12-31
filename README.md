@@ -52,7 +52,9 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 If you need multiple contexts at once, you may provide context name in it's constructor ( new Context("test_context"); ). Then you should specify InjectorBehaviour to use this context by setting сorresponding context name.
 If no argument is passed context is named "default".
 
-! Warning ! You can not have multiple contexts with the same name.
+You can not have multiple contexts with the same name.
+
+It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method.
 
 ## Interfaces ##
 
