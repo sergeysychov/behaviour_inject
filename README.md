@@ -165,6 +165,13 @@ public class GameFactory : DependencyFactory
     }
 }
 
+
+public class GameDependentBehaviour : MonoBehaviour {
+    //created with factory!
+    [Inject]
+    public Game MyGame { get; set; }
+}
+
 ```
 
 ## Watch example scene ##
