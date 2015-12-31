@@ -14,7 +14,7 @@ For most cases you will need only three entities:
 * InjectorBehaviour behaviour
 * [Inject] attribute
 
-# Initialization #
+### Initialization ###
 
 Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and InjectorBehaviour.
 
@@ -28,7 +28,7 @@ void Awake(){
 }
 ```
 
-# Injection #
+### Injection ###
 
 Place 'InjectorBehaviour' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
 
