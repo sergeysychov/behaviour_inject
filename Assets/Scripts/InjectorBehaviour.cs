@@ -38,11 +38,12 @@ namespace BehaviourInject
         void Awake()
         {
             _context = ContextRegistry.GetContext(_contextName);
+            
             FindAndResolveDependencies();
         }
 
 
-        private void FindAndResolveDependencies()
+        public void FindAndResolveDependencies()
         {
             MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
             
