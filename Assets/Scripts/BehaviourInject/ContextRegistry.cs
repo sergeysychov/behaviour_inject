@@ -25,7 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 
-namespace BehaviourInject
+namespace BehaviourInject.Internal
 {
     //Do not use this class or it's methods anywhere!
 

@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using BehaviourInject.Internal;
 
 namespace BehaviourInject
 {

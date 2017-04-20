@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Reflection;
 using UnityEngine;
+using BehaviourInject.Internal;
 
 namespace BehaviourInject
 {
@@ -54,52 +55,30 @@ namespace BehaviourInject
                 if (behaviour == this)
                     continue;
 
-                ProcessBehaviour(behaviour);
+                InjectToBehaviour(behaviour);
             }
         }
 
 
-        private void ProcessBehaviour(MonoBehaviour behaviour)
+        public void InjectToBehaviour(MonoBehaviour behaviour)
         {
-            Type componentType = behaviour.GetType();
+			Type componentType = behaviour.GetType();
 
-            PropertyInfo[] properties = componentType.GetProperties();
+			IBehaviourInjection[] injections = ReflectionCache.GetInjections(componentType);
 
-            for (int i = 0; i < properties.Length; i++)
-            {
-                PropertyInfo property = properties[i];
-                if (NotForInjection(property)) continue;
-                ThrowIfNotNull(property.GetValue(behaviour, null));
-
-                object dependency = _context.Resolve(property.PropertyType);
-                property.SetValue(behaviour, dependency, null);
-            }
-            
-            FieldInfo[] fields = componentType.GetFields();
-
-            for (int i = 0; i < fields.Length; i++)
-            {
-                FieldInfo field = fields[i];
-                if (NotForInjection(field)) continue;
-                ThrowIfNotNull(field.GetValue(behaviour));
-                
-                object dependency = _context.Resolve(field.FieldType);
-                field.SetValue(behaviour, dependency);
-            }
-        }
+			foreach (IBehaviourInjection injection in injections)
+			{
+				object dependency = _context.Resolve(injection.DependencyType);
+				injection.Inject(behaviour, dependency);
+			}
+		}
+    }
 
 
-        private void ThrowIfNotNull(object value)
+    public static class InjectorMonobehaviourExtensions {
+        public static void ForceInject(this MonoBehaviour behaviour)
         {
-            if (value != null)
-                throw new BehaviourInjectException("Property to inject is not null!");
-        }
-
-
-        private bool NotForInjection(MemberInfo property)
-        {
-            object[] attributes = property.GetCustomAttributes(typeof(InjectAttribute), true);
-            return attributes.Length == 0;
+            behaviour.SendMessage("InjectToBehaviour", behaviour, SendMessageOptions.DontRequireReceiver);
         }
     }
 }
