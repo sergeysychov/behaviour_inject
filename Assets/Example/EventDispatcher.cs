@@ -6,14 +6,14 @@ using UnityEngine;
 public class EventDispatcher : MonoBehaviour {
 
 	[Inject]
-	public IEventDispatcher EventManager { get; private set; }
+	private IEventDispatcher _eventManager;
 	
 	IEnumerator Start () {
 
 		yield return new WaitForSeconds(2f);
 
 		Debug.Log("Dispatch event");
-		EventManager.DispatchEvent(new MyEvent { _index = 2 });
+		_eventManager.DispatchEvent(new MyEvent { _index = 2 });
 	}
 }
 

@@ -30,8 +30,8 @@ namespace BehaviourInject.Internal
 		private IBehaviourInjection[] GenerateInjectionsFor(Type type)
 		{
 			List<IBehaviourInjection> injections = new List<IBehaviourInjection>();
-
-			PropertyInfo[] properties = type.GetProperties();
+			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			PropertyInfo[] properties = type.GetProperties(flags);
 			for (int i = 0; i < properties.Length; i++)
 			{
 				PropertyInfo property = properties[i];
@@ -39,7 +39,7 @@ namespace BehaviourInject.Internal
 					injections.Add(new PropertyInjection(property));
 			}
 
-			FieldInfo[] fields = type.GetFields();
+			FieldInfo[] fields = type.GetFields(flags);
 			for (int i = 0; i < fields.Length; i++)
 			{
 				FieldInfo field = fields[i];
@@ -62,8 +62,9 @@ namespace BehaviourInject.Internal
 
 		private BlindEventHandler[] GenerateEventHandlers(Type target)
 		{
+			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			List<BlindEventHandler> events = new List<BlindEventHandler>();
-			MethodInfo[] methods = target.GetMethods();
+			MethodInfo[] methods = target.GetMethods(flags);
 
 			foreach (MethodInfo methodInfo in methods)
 			{
