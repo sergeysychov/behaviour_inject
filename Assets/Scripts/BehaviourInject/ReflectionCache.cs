@@ -77,7 +77,7 @@ namespace BehaviourInject.Internal
 
 				Type eventType = parameters[0].ParameterType;
 				if(eventType.IsValueType)
-					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not have a value type!");
+					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
 
 				events.Add(new BlindEventHandler(methodInfo, eventType));
 			}

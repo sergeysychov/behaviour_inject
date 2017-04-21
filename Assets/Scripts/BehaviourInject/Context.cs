@@ -50,9 +50,11 @@ namespace BehaviourInject
             _factories = new Dictionary<Type, DependencyFactory>();
             _autoCompositionTypes = new HashSet<Type>();
 
+			//context itself may be actual Action holder, and can recieve subscribers.
+			//therefore nested contexts could just subscribe to parent ones
 			var eventManager = new EventManagerImpl();
 			RegisterDependency(eventManager);
-			RegisterDependencyAs<EventManagerImpl, IEventManager>(eventManager);
+			RegisterDependency<IEventDispatcher>(eventManager);
         }
 
         public void RegisterDependency<T>(T dependency) {

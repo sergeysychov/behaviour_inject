@@ -6,7 +6,7 @@ using UnityEngine;
 public class EventDispatcher : MonoBehaviour {
 
 	[Inject]
-	public IEventManager EventManager { get; private set; }
+	public IEventDispatcher EventManager { get; private set; }
 	
 	IEnumerator Start () {
 

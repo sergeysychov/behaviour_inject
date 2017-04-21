@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BehaviourInject.Internal
 {
-	public class EventManagerImpl : IEventManager
+	public class EventManagerImpl : IEventDispatcher
 	{
 		public event Action<object> EventInjectors;
 

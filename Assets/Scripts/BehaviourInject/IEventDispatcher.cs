@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BehaviourInject
 {
-	public interface IEventManager
+	public interface IEventDispatcher
 	{
 		void DispatchEvent(object evnt);
 	}
