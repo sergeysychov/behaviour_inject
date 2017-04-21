@@ -24,7 +24,7 @@ namespace BehaviourInject.Internal
 		public void Inject(object target, object val)
 		{
 			if (_propertyInfo.GetValue(target, null) != null)
-				throw new BehaviourInjectException("Property to inject is already contains something!");
+				throw new BehaviourInjectException(String.Format("Property {0} to inject is already contains something!", _propertyInfo.Name));
 			_propertyInfo.SetValue(target, val, null);
 		}
 	}
@@ -43,7 +43,7 @@ namespace BehaviourInject.Internal
 		public void Inject(object target, object val)
 		{
 			if(_fieldInfo.GetValue(target) != null)
-				throw new BehaviourInjectException("Field to inject is already contains something!");
+				throw new BehaviourInjectException(String.Format("Field {0} to inject is already contains something!", _fieldInfo.Name));
 
 			_fieldInfo.SetValue(target, val);
 		}

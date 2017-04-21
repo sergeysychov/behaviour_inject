@@ -49,6 +49,10 @@ namespace BehaviourInject
             _dependencies = new Dictionary<Type, object>();
             _factories = new Dictionary<Type, DependencyFactory>();
             _autoCompositionTypes = new HashSet<Type>();
+
+			var eventManager = new EventManagerImpl();
+			RegisterDependency(eventManager);
+			RegisterDependencyAs<EventManagerImpl, IEventManager>(eventManager);
         }
 
         public void RegisterDependency<T>(T dependency) {

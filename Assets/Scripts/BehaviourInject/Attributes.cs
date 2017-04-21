@@ -28,4 +28,7 @@ namespace BehaviourInject
 {
     public class InjectAttribute : Attribute
     { }
+
+	public class InjectEventAttribute : Attribute
+	{ }
 }

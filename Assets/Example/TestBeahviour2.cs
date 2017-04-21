@@ -16,4 +16,25 @@ public class TestBeahviour2 : MonoBehaviour {
         Debug.Log(Model.Data);
         Debug.Log(Reader.Read());
 	}
+	
+	[InjectEvent]
+	public void HandleEvent(MyEvent evnt)
+	{
+		Debug.Log("catch event " + evnt._index);
+	}
+
+	[InjectEvent]
+	public void HandleEvent2(MyEvent evnt)
+	{
+		Debug.Log("catch event2 " + evnt._index);
+	}
+
+	[InjectEvent]
+	public void HandleEvent3(InternEvent evnt)
+	{
+		Debug.Log("catch event3 ");
+	}
+
+	public class InternEvent {
+	}
 }

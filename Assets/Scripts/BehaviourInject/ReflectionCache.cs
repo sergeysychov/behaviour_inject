@@ -9,10 +9,12 @@ namespace BehaviourInject.Internal
 		private static ReflectionCache _instance;
 
 		private Dictionary<Type, IBehaviourInjection[]> _behavioirInjections;
+		private Dictionary<Type, BlindEventHandler[]> _blindEvents;
 
 		public ReflectionCache()
 		{
 			_behavioirInjections = new Dictionary<Type, IBehaviourInjection[]>();
+			_blindEvents = new Dictionary<Type, BlindEventHandler[]>();
 		}
 
 
@@ -49,9 +51,54 @@ namespace BehaviourInject.Internal
 		}
 
 
-		private bool IsInjectable(MemberInfo property)
+		public BlindEventHandler[] GetEventHandlers(Type target)
 		{
-			object[] attributes = property.GetCustomAttributes(typeof(InjectAttribute), true);
+			if (!_blindEvents.ContainsKey(target))
+				_blindEvents[target] = GenerateEventHandlers(target);
+
+			return _blindEvents[target];
+		}
+
+
+		private BlindEventHandler[] GenerateEventHandlers(Type target)
+		{
+			List<BlindEventHandler> events = new List<BlindEventHandler>();
+			MethodInfo[] methods = target.GetMethods();
+
+			foreach (MethodInfo methodInfo in methods)
+			{
+				if (IsNotBlindEvent(methodInfo))
+					continue;
+
+				ParameterInfo[] parameters = methodInfo.GetParameters();
+				int parametersCount = parameters.Length;
+				if (parametersCount != 1)
+					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event handlers can not have more than one argument!");
+
+				Type eventType = parameters[0].ParameterType;
+				if(eventType.IsValueType)
+					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not have a value type!");
+
+				events.Add(new BlindEventHandler(methodInfo, eventType));
+			}
+
+			return events.ToArray();
+		}
+
+		private bool IsInjectable(MemberInfo member)
+		{
+			return ContainsAttribute(member, typeof(InjectAttribute));
+		}
+
+		private bool IsNotBlindEvent(MethodInfo member)
+		{
+			return !ContainsAttribute(member, typeof(InjectEventAttribute));
+		}
+
+
+		private bool ContainsAttribute(MemberInfo member, Type attributeType)
+		{
+			object[] attributes = member.GetCustomAttributes(attributeType, true);
 			return attributes.Length > 0;
 		}
 
@@ -62,6 +109,14 @@ namespace BehaviourInject.Internal
 				_instance = new ReflectionCache();
 
 			return _instance.GetInjectionsFor(type);
+		}
+
+		public static BlindEventHandler[] GetEventHandlersFor(Type target)
+		{
+			if (_instance == null)
+				_instance = new ReflectionCache();
+
+			return _instance.GetEventHandlers(target);
 		}
 	}
 }

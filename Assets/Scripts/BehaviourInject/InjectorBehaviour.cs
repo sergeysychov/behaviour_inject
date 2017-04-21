@@ -23,7 +23,6 @@ SOFTWARE.
 */
 
 using System;
-using System.Reflection;
 using UnityEngine;
 using BehaviourInject.Internal;
 
@@ -35,27 +34,28 @@ namespace BehaviourInject
         private string _contextName = "default";
 
         private Context _context;
+		private EventManagerImpl _eventManager;
 
         void Awake()
         {
             _context = ContextRegistry.GetContext(_contextName);
             
             FindAndResolveDependencies();
+			_eventManager = (EventManagerImpl)_context.Resolve(typeof(EventManagerImpl));
+			_eventManager.EventInjectors += InjectBlindEvent;
         }
 
 
         public void FindAndResolveDependencies()
         {
             MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
-            
-            for (int i = 0; i < components.Length; i++)
-            {
-                MonoBehaviour behaviour = components[i];
 
-                if (behaviour == this)
-                    continue;
+			foreach (MonoBehaviour component in components)
+			{
+				if (component == this)
+					continue;
 
-                InjectToBehaviour(behaviour);
+                InjectToBehaviour(component);
             }
         }
 
@@ -72,7 +72,31 @@ namespace BehaviourInject
 				injection.Inject(behaviour, dependency);
 			}
 		}
-    }
+
+
+		private void InjectBlindEvent(object blindEvent)
+		{
+			MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
+			foreach (MonoBehaviour component in components)
+			{
+				if (component == this)
+					continue;
+
+				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(component.GetType());
+				foreach (BlindEventHandler handler in handlers)
+				{
+					if (handler.IsSuitableForEvent(blindEvent.GetType()))
+						handler.Invoke(component, blindEvent);
+				}
+			}
+		}
+
+
+		void OnDestroy()
+		{
+			_eventManager.EventInjectors -= InjectBlindEvent;
+		}
+	}
 
 
     public static class InjectorMonobehaviourExtensions {
