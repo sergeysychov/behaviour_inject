@@ -1,6 +1,6 @@
 # Behaviour Inject for Unity3d #
 
-This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a stick. Simple means reliable. There are only 6 script files with approximately 300 lines of code. You may easily handle it, support it or even extend it in the way you like. Although it provides crutial features of reflective dependency injection:
+This is simple and reliable inversion of control tool for Unity3d. There are few script files with approximately 400 lines of code. You may easily handle it, support it or even extend it in the way you like. Although it provides crutial features of reflective dependency injection:
 - resolving interfaces;
 - injection to MonoBehaviour properties or fields;
 - poco object autocomposition with constructor injection;
