@@ -47,23 +47,24 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 
 ## Multiple contexts ##
 
-If you need multiple contexts at once, you may provide context scope in it's constructor 
+If you need multiple contexts at once, you may provide context name in it's constructor 
 ```csharp 
-new Context(ContextScope.YourScope); 
+new Context("my_context"); 
 ```
-Then you should specify InjectorBehaviour to use this context by setting сorresponding scope.
-If no argument is passed context will have Default scope.
+Then you should specify InjectorBehaviour to use this context by setting сorresponding name in inspector.
+If no argument is passed context will be named "default".
 
-You can not have multiple contexts with the same scope at one.
+You can not have multiple contexts with the same name at once.
 
 It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method. 
 
 You may create parent context that allow you to share dependencies between multiple contexts:
 
 ```charp
-new Context(ContextScope.MyScope, ContextScope.Parent);
+new Context("my_context")
+	.SetParentContext("base");
 ```
-After this any dependency that won't be found in 'MyScope' will be searched in 'Parent' scope. You may feel free to add any number of scopes to the ContextScope enumeartion.
+After this any dependency that won't be found in "my_context" context will be searched in "base".
 
 ## Interfaces ##
 
