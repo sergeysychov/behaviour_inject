@@ -51,19 +51,19 @@ If you need multiple contexts at once, you may provide context scope in it's con
 ```csharp 
 new Context(ContextScope.YourScope); 
 ```
-Then you should specify InjectorBehaviour to use this context by setting сorresponding context name.
-If no argument is passed context is named "default".
+Then you should specify InjectorBehaviour to use this context by setting сorresponding scope.
+If no argument is passed context will have Default scope.
 
-You can not have multiple contexts with the same name.
+You can not have multiple contexts with the same scope at one.
 
 It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method. 
 
-You may create parent context that allows share dependencies between multiple contexts:
+You may create parent context that allow you to share dependencies between multiple contexts:
 
 ```charp
 new Context(ContextScope.MyScope, ContextScope.Parent);
 ```
-After this any dependency that wont be found in 'MyScope' will be searched in 'Parent' scope. You may feel free to add any number of scopes to the ContextScope enumeartion.
+After this any dependency that won't be found in 'MyScope' will be searched in 'Parent' scope. You may feel free to add any number of scopes to the ContextScope enumeartion.
 
 ## Interfaces ##
 
@@ -179,7 +179,7 @@ public class GameDependentBehaviour : MonoBehaviour {
 
 ## Events ##
 
-Events model in BehaviourInject assumes that event sender resolves interface IEventDispatcher via DI and call DispatchEvent to dispatch event as object of any type except of value types.
+Event model in BehaviourInject assumes that event sender resolves interface IEventDispatcher via DI and call DispatchEvent to dispatch event as object of any type except of value types.
 
 ```csharp
 	[Inject]
