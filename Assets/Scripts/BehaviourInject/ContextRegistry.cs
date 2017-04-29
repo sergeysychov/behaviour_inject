@@ -31,35 +31,35 @@ namespace BehaviourInject.Internal
 
     public class ContextRegistry
     {
-        private static Dictionary<ContextScope, Context> _contextRegistry = new Dictionary<ContextScope, Context>();
+        private static Dictionary<string, Context> _contextRegistry = new Dictionary<string, Context>();
 
-        public static void RegisterContext(ContextScope scope, Context context)
+        public static void RegisterContext(string name, Context context)
         {
             if (context == null)
                 throw new BehaviourInjectException("You tried to register null context. Wait... why the heck are you even using this method???");
 
-            if (_contextRegistry.ContainsKey(scope))
-                throw new BehaviourInjectException(String.Format("Context with name \"{0}\" already exists!", scope));
+            if (_contextRegistry.ContainsKey(name))
+                throw new BehaviourInjectException(String.Format("Context with name \"{0}\" already exists!", name));
 
-            _contextRegistry.Add(scope, context);
+            _contextRegistry.Add(name, context);
         }
 
 
-        public static void UnregisterContext(ContextScope scope)
+        public static void UnregisterContext(string name)
         {
-            if(! _contextRegistry.ContainsKey(scope))
-                throw new BehaviourInjectException(String.Format("Context \"{0}\" already removed or never existed!", scope));
+            if(! _contextRegistry.ContainsKey(name))
+                throw new BehaviourInjectException(String.Format("Context \"{0}\" already removed or never existed!", name));
 
-            _contextRegistry.Remove(scope);
+            _contextRegistry.Remove(name);
         }
 
 
-        public static Context GetContext(ContextScope scope)
+        public static Context GetContext(string name)
 		{
-			if (!_contextRegistry.ContainsKey(scope))
-                throw new BehaviourInjectException(String.Format("Context with name \"{0}\" does not exist!", scope));
+			if (!_contextRegistry.ContainsKey(name))
+                throw new BehaviourInjectException(String.Format("Context with name \"{0}\" does not exist!", name));
 
-            return _contextRegistry[scope];
+            return _contextRegistry[name];
         }
     }
 }

@@ -33,39 +33,26 @@ namespace BehaviourInject
 
     public class Context : IContextParent
     {
+		public const string DEFAULT = "default";
+
         private Dictionary<Type, object> _dependencies;
 		private List<object> _listedDependencies;
         private Dictionary<Type, DependencyFactory> _factories;
         private HashSet<Type> _autoCompositionTypes;
-        private ContextScope _scope;
+        private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
 
 		public EventManager EventManager { get; private set; }
 
 
-        public Context() : this(ContextScope.Default)
+        public Context() : this(DEFAULT)
         { }
 
 
-        public Context(ContextScope scope)
+        public Context(string name)
 		{
-			Initialize(scope, ParentContextStub.STUB);
-		}
-
-        public Context(ContextScope scope, ContextScope parentScope)
-		{
-			if (scope == parentScope)
-				throw new BehaviourInjectException("Scopes can not be cycled: " + scope + " - " + parentScope);
-
-			Context parentContext = ContextRegistry.GetContext(parentScope);
-			Initialize(scope, parentContext);
-		}
-
-
-		private void Initialize(ContextScope scope, IContextParent parent)
-		{
-			_scope = scope;
-			ContextRegistry.RegisterContext(scope, this);
+			_name = name;
+			ContextRegistry.RegisterContext(name, this);
 			_dependencies = new Dictionary<Type, object>();
 			_listedDependencies = new List<object>();
 			_factories = new Dictionary<Type, DependencyFactory>();
@@ -74,9 +61,24 @@ namespace BehaviourInject
 			EventManager = new EventManager();
 			EventManager.EventInjectors += OnBlindEventHandler;
 			RegisterDependency<IEventDispatcher>(EventManager);
-			_parentContext = parent;
+
+			_parentContext = ParentContextStub.STUB;
+		}
+
+
+		public Context SetParentContext(string parentName)
+		{
+			if (_name == parentName)
+				throw new BehaviourInjectException("Scopes can not be cycled: " + _name + " - " + parentName);
+
+			EventManager.ClearParent();
+
+			Context parentContext = ContextRegistry.GetContext(parentName);
+			_parentContext = parentContext;
 			EventManager.SetParent(_parentContext.EventManager);
-        }
+
+			return this;
+		}
 
 
 		private void OnBlindEventHandler(object evnt)
@@ -93,17 +95,19 @@ namespace BehaviourInject
 		}
 
 
-		public void RegisterDependency<T>(T dependency) {
+		public Context RegisterDependency<T>(T dependency) {
             RegisterDependencyAs<T, T>(dependency);
+			return this;
         }
 
 
-        public void RegisterDependencyAs<T, IT>(T dependency) where T : IT
+        public Context RegisterDependencyAs<T, IT>(T dependency) where T : IT
         {
             ThrowIfNull(dependency, "dependency");
             Type dependencyType = typeof(IT);
             ThrowIfRegistered(dependencyType);
 			InsertDependency(dependencyType, dependency);
+			return this;
         }
 
 
@@ -128,16 +132,17 @@ namespace BehaviourInject
         }
 
 
-        public void RegisterFactory<T>(DependencyFactory factory)
+        public Context RegisterFactory<T>(DependencyFactory factory)
         {
             ThrowIfNull(factory, "factory");
             Type dependencyType = typeof(T);
             ThrowIfRegistered(dependencyType);
             _factories.Add(dependencyType, factory);
+			return this;
         }
 
 
-        public void RegisterFactory<T, FactoryT>()
+        public Context RegisterFactory<T, FactoryT>()
         {
             Type factoryType = typeof(FactoryT);
             Type dependencyType = typeof(T);
@@ -145,14 +150,16 @@ namespace BehaviourInject
             RegisterType<FactoryT>();
             DependencyFactory factory = (DependencyFactory)Resolve(factoryType);
             _factories.Add(dependencyType, factory);
+			return this;
         }
 
 
-        public void RegisterType<T>()
+        public Context RegisterType<T>()
         {
             Type dependencyType = typeof(T);
             ThrowIfRegistered(dependencyType);
             _autoCompositionTypes.Add(dependencyType);
+			return this;
         }
 
 
@@ -247,7 +254,7 @@ namespace BehaviourInject
         public void Destroy()
         {
 			EventManager.ClearParent();
-            ContextRegistry.UnregisterContext(_scope);
+            ContextRegistry.UnregisterContext(_name);
         }
 	}
 }

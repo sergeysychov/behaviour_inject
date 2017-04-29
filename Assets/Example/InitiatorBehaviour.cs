@@ -4,6 +4,9 @@ using BehaviourInject;
 
 public class InitiatorBehaviour : MonoBehaviour {
 
+	private const string BASE = "base";
+	private const string TEST = "test";
+
     private Context _context1;
     private Context _context2;
     
@@ -13,19 +16,21 @@ public class InitiatorBehaviour : MonoBehaviour {
         DataModel dataModel = new DataModel("dataOne");
         Network networker = new Network();
 
-		Context baseContest = new Context(ContextScope.Base);
+		Context baseContest = new Context(BASE);
 		baseContest.RegisterDependency(dataModel);
 
-        _context1 = new Context(ContextScope.Default, ContextScope.Base);
-        _context1.RegisterDependency(dataModel);
-        _context1.RegisterDependencyAs<Network, IReader>(networker);
+		_context1 = new Context()
+			.SetParentContext(BASE)
+			.RegisterDependency(dataModel)
+			.RegisterDependencyAs<Network, IReader>(networker);
 
         DataModel mockData = new DataModel("this is mock data");
         MockReader mockReader = new MockReader();
 
-        _context2 = new Context(ContextScope.Test, ContextScope.Base);
-        _context2.RegisterDependency(mockData);
-        _context2.RegisterDependencyAs<MockReader, IReader>(mockReader);
+        _context2 = new Context(TEST)
+			.SetParentContext(BASE)
+			.RegisterDependency(mockData)
+			.RegisterDependencyAs<MockReader, IReader>(mockReader);
 	}
 
 

@@ -32,14 +32,14 @@ namespace BehaviourInject
     public class InjectorBehaviour : MonoBehaviour
     {
         [SerializeField]
-        private ContextScope _scope = ContextScope.Default;
+        private string _contextName = Context.DEFAULT;
 
         private Context _context;
 		private EventManager _eventManager;
 
         void Awake()
         {
-            _context = ContextRegistry.GetContext(_scope);
+            _context = ContextRegistry.GetContext(_contextName);
 			FindAndResolveDependencies();
 			_eventManager = _context.EventManager;
 			_eventManager.EventInjectors += InjectBlindEvent;
