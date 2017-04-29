@@ -47,12 +47,23 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 
 ## Multiple contexts ##
 
-If you need multiple contexts at once, you may provide context name in it's constructor ( new Context("test_context"); ). Then you should specify InjectorBehaviour to use this context by setting сorresponding context name.
+If you need multiple contexts at once, you may provide context scope in it's constructor 
+```csharp 
+new Context(ContextScope.YourScope); 
+```
+Then you should specify InjectorBehaviour to use this context by setting сorresponding context name.
 If no argument is passed context is named "default".
 
 You can not have multiple contexts with the same name.
 
-It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method.
+It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method. 
+
+You may create parent context that allows share dependencies between multiple contexts:
+
+```charp
+new Context(ContextScope.MyScope, ContextScope.Parent);
+```
+After this any dependency that wont be found in 'MyScope' will be searched in 'Parent' scope. You may feel free to add any number of scopes to the ContextScope enumeartion.
 
 ## Interfaces ##
 
@@ -165,6 +176,36 @@ public class GameDependentBehaviour : MonoBehaviour {
 }
 
 ```
+
+## Events ##
+
+Events model in BehaviourInject assumes that event sender resolves interface IEventDispatcher via DI and call DispatchEvent to dispatch event as object of any type except of value types.
+
+```charp
+	[Inject]
+	private IEventDispatcher _eventManager;
+    
+    public void CallFireEvent()
+    {
+        IMyEvent evt = new MyEvent();
+		_eventManager.DispatchEvent(evt);
+    }
+```
+Any targeted MonoBehaviour or object that is registered as dependency may receive that event if it will write handler method. This method should contain single argument that has the same type as event object or its ancestors and signed with [InjectEvent] attribute.
+
+```charp
+    //both of this methods will be triggered on 'MyEvent' event because 'MyEvent' implements 'IMyEvent' interface
+    
+    [InjectEvent]
+    public void ReceiveEvent(MyEvent evt)
+    { ... }
+    
+    [InjectEvent]
+    public void ReceiveEventInterface(IMyEvent evt)
+    { ... }
+```
+
+This technique allows to dispatch and recieve events without taking care of subsctribing and unsubscribing.
 
 ## Watch example scene ##
 
