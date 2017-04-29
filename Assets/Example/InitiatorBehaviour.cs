@@ -16,8 +16,8 @@ public class InitiatorBehaviour : MonoBehaviour {
         DataModel dataModel = new DataModel("dataOne");
         Network networker = new Network();
 
-		Context baseContest = new Context(BASE);
-		baseContest.RegisterDependency(dataModel);
+		new Context(BASE)
+			.RegisterDependency(dataModel);
 
 		_context1 = new Context()
 			.SetParentContext(BASE)

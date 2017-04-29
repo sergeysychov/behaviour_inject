@@ -20,7 +20,7 @@ namespace BehaviourInject.Internal
 		public void SetParent(EventManager manager)
 		{
 			_parent = manager;
-			_parent.EventInjectors -= DispatchEvent;
+			_parent.EventInjectors += DispatchEvent;
 		}
 
 
