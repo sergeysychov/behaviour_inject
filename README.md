@@ -185,24 +185,24 @@ Events model in BehaviourInject assumes that event sender resolves interface IEv
 	[Inject]
 	private IEventDispatcher _eventManager;
     
-    public void CallFireEvent()
-    {
-        IMyEvent evt = new MyEvent();
+	public void CallFireEvent()
+	{
+		IMyEvent evt = new MyEvent();
 		_eventManager.DispatchEvent(evt);
-    }
+	}
 ```
 Any targeted MonoBehaviour or object that is registered as dependency may receive that event if it will write handler method. This method should contain single argument that has the same type as event object or its ancestors and signed with [InjectEvent] attribute.
 
 ```csharp
-    //both of this methods will be triggered on 'MyEvent' event because 'MyEvent' implements 'IMyEvent' interface
-    
-    [InjectEvent]
-    public void ReceiveEvent(MyEvent evt)
-    { ... }
-    
-    [InjectEvent]
-    public void ReceiveEventInterface(IMyEvent evt)
-    { ... }
+//both of this methods will be triggered on 'MyEvent' event because 'MyEvent' implements 'IMyEvent' interface
+
+[InjectEvent]
+public void ReceiveEvent(MyEvent evt)
+{ ... }
+
+[InjectEvent]
+public void ReceiveEventInterface(IMyEvent evt)
+{ ... }
 ```
 
 This technique allows to dispatch and recieve events without taking care of subsctribing and unsubscribing.
