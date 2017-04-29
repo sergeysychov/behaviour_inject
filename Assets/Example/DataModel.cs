@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
+using BehaviourInject;
 
 public class DataModel
 {
@@ -11,4 +13,10 @@ public class DataModel
     {
         Data = data;
     }
+
+	[InjectEvent]
+	public void EventHandler(IMyEvent evt)
+	{
+		Debug.Log("Event in model " + evt.Num());
+	}
 }

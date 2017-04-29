@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using BehaviourInject;
 using UnityEngine;
@@ -18,7 +19,17 @@ public class EventDispatcher : MonoBehaviour {
 }
 
 
-public class MyEvent
+public class MyEvent : IMyEvent
 {
 	public int _index;
+
+	public int Num()
+	{
+		return _index;
+	}
+}
+
+public interface IMyEvent
+{
+	int Num();
 }

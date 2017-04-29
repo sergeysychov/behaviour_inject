@@ -24,9 +24,9 @@ public class TestBeahviour2 : MonoBehaviour {
 	}
 
 	[InjectEvent]
-	private void HandleEvent2(MyEvent evnt)
+	private void HandleEvent2(IMyEvent evnt)
 	{
-		Debug.Log("catch event2 " + evnt._index);
+		Debug.Log("catch IMyEvent " + evnt.Num());
 	}
 
 	[InjectEvent]

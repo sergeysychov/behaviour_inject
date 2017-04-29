@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using BehaviourInject.Internal;
 
@@ -31,17 +32,16 @@ namespace BehaviourInject
     public class InjectorBehaviour : MonoBehaviour
     {
         [SerializeField]
-        private string _contextName = "default";
+        private ContextScope _scope = ContextScope.Default;
 
         private Context _context;
-		private EventManagerImpl _eventManager;
+		private EventManager _eventManager;
 
         void Awake()
         {
-            _context = ContextRegistry.GetContext(_contextName);
-            
-            FindAndResolveDependencies();
-			_eventManager = (EventManagerImpl)_context.Resolve(typeof(EventManagerImpl));
+            _context = ContextRegistry.GetContext(_scope);
+			FindAndResolveDependencies();
+			_eventManager = _context.EventManager;
 			_eventManager.EventInjectors += InjectBlindEvent;
         }
 

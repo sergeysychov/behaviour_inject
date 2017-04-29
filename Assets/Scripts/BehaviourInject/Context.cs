@@ -31,33 +31,69 @@ namespace BehaviourInject
 {
     //Do not use this class anywhere!
 
-    public class Context
+    public class Context : IContextParent
     {
         private Dictionary<Type, object> _dependencies;
+		private List<object> _listedDependencies;
         private Dictionary<Type, DependencyFactory> _factories;
         private HashSet<Type> _autoCompositionTypes;
-        private string _name;
+        private ContextScope _scope;
+		private IContextParent _parentContext = ParentContextStub.STUB;
 
-        public Context() : this("default")
+		public EventManager EventManager { get; private set; }
+
+
+        public Context() : this(ContextScope.Default)
         { }
 
 
-        public Context(string contextName)
-        {
-            _name = contextName;
-            ContextRegistry.RegisterContext(contextName, this);
-            _dependencies = new Dictionary<Type, object>();
-            _factories = new Dictionary<Type, DependencyFactory>();
-            _autoCompositionTypes = new HashSet<Type>();
+        public Context(ContextScope scope)
+		{
+			Initialize(scope, ParentContextStub.STUB);
+		}
 
-			//context itself may be actual Action holder, and can recieve subscribers.
-			//therefore nested contexts could just subscribe to parent ones
-			var eventManager = new EventManagerImpl();
-			RegisterDependency(eventManager);
-			RegisterDependency<IEventDispatcher>(eventManager);
+        public Context(ContextScope scope, ContextScope parentScope)
+		{
+			if (scope == parentScope)
+				throw new BehaviourInjectException("Scopes can not be cycled: " + scope + " - " + parentScope);
+
+			Context parentContext = ContextRegistry.GetContext(parentScope);
+			Initialize(scope, parentContext);
+		}
+
+
+		private void Initialize(ContextScope scope, IContextParent parent)
+		{
+			_scope = scope;
+			ContextRegistry.RegisterContext(scope, this);
+			_dependencies = new Dictionary<Type, object>();
+			_listedDependencies = new List<object>();
+			_factories = new Dictionary<Type, DependencyFactory>();
+			_autoCompositionTypes = new HashSet<Type>();
+			
+			EventManager = new EventManager();
+			EventManager.EventInjectors += OnBlindEventHandler;
+			RegisterDependency<IEventDispatcher>(EventManager);
+			_parentContext = parent;
+			EventManager.SetParent(_parentContext.EventManager);
         }
 
-        public void RegisterDependency<T>(T dependency) {
+
+		private void OnBlindEventHandler(object evnt)
+		{
+			for (int i = 0; i < _listedDependencies.Count; i++)
+			{
+				object dependency = _listedDependencies[i];
+				Type dependencyType = dependency.GetType();
+				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(dependencyType);
+				foreach (BlindEventHandler handler in handlers)
+					if (handler.IsSuitableForEvent(evnt.GetType()))
+						handler.Invoke(dependency, evnt);
+			}
+		}
+
+
+		public void RegisterDependency<T>(T dependency) {
             RegisterDependencyAs<T, T>(dependency);
         }
 
@@ -67,8 +103,15 @@ namespace BehaviourInject
             ThrowIfNull(dependency, "dependency");
             Type dependencyType = typeof(IT);
             ThrowIfRegistered(dependencyType);
-            _dependencies.Add(dependencyType, dependency);
+			InsertDependency(dependencyType, dependency);
         }
+
+
+		private void InsertDependency(Type type, object dependency)
+		{
+			_dependencies.Add(type, dependency);
+			_listedDependencies.Add(dependency);
+		}
 
 
         private void ThrowIfNull(object target, string argName)
@@ -113,16 +156,34 @@ namespace BehaviourInject
         }
 
 
-        public object Resolve(Type resolvingType)
+		public bool TryResolve(Type resolvingType, out object dependency)
+		{
+			object parentDependency;
+			if (_dependencies.ContainsKey(resolvingType))
+				dependency = _dependencies[resolvingType];
+			else if (_factories.ContainsKey(resolvingType))
+				dependency = _factories[resolvingType].Create();
+			else if (_autoCompositionTypes.Contains(resolvingType))
+				dependency = AutocomposeDependency(resolvingType);
+			else if (_parentContext.TryResolve(resolvingType, out parentDependency))
+				dependency = parentDependency;
+			else
+			{
+				dependency = null;
+				return false;
+			}
+
+			return true;
+		}
+
+		public object Resolve(Type resolvingType)
         {
-            if (_dependencies.ContainsKey(resolvingType))
-                return _dependencies[resolvingType];
-            else if (_factories.ContainsKey(resolvingType))
-                return _factories[resolvingType].Create();
-            else if (_autoCompositionTypes.Contains(resolvingType))
-                return AutocomposeDependency(resolvingType);
-            else
-                throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+			object dependency;
+
+			if(! TryResolve(resolvingType, out dependency))
+				throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+
+			return dependency;
         }
 
 
@@ -144,7 +205,7 @@ namespace BehaviourInject
             }
 
             object result = constructor.Invoke(arguments);
-            _dependencies.Add(resolvingType, result);
+			InsertDependency(resolvingType, result);
 
             return result;
         }
@@ -185,7 +246,8 @@ namespace BehaviourInject
         
         public void Destroy()
         {
-            ContextRegistry.UnregisterContext(_name);
+			EventManager.ClearParent();
+            ContextRegistry.UnregisterContext(_scope);
         }
-    }
+	}
 }
