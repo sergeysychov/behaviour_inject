@@ -191,7 +191,7 @@ Event model in BehaviourInject assumes that event sender resolves interface IEve
 		_eventManager.DispatchEvent(evt);
 	}
 ```
-Any targeted MonoBehaviour or object that is registered as dependency may receive that event if it will write handler method. This method should contain single argument that has the same type as event object or its ancestors and signed with [InjectEvent] attribute.
+Any targeted MonoBehaviour or object that is registered as dependency may receive that event if it have handler method. This method should contain single argument that has the same type as event object or its ancestors and signed with [InjectEvent] attribute.
 
 ```csharp
 //both of this methods will be triggered on 'MyEvent' event because 'MyEvent' implements 'IMyEvent' interface
