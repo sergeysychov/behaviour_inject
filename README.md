@@ -67,7 +67,7 @@ It is also possible to destroy context (if it's bound to scene for example) simp
 
 You may create parent context that allow you to share dependencies between multiple contexts:
 
-```charp
+```csharp
 new Context("my_context")
 	.SetParentContext("base");
 ```
