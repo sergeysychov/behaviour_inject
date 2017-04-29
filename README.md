@@ -35,13 +35,11 @@ In your MonoBehaviour mark dependency in this way:
 ```csharp
 public class MyBehaviour : MonoBehaviour 
 {
-    //it should be public for injection.
     [Inject]
     public MyDataModel Model { get; private set; }
     
-    //also works with fields. But I still would recommend you to prefer properties in the sake of incapsulation.
     [Inject]
-    public MyDataModel _model;
+    private MyDataModel _model;
 }
 ```
 
@@ -174,4 +172,4 @@ There are example scenes and behaviours for simple injections, autocompositions 
 
 ## Benchmark ##
 
-On intel i5 3.2Ghz and Unity 5.3 it takes about 50 ms to make 1000 injections.
+On intel i5 3.2Ghz and Unity 5.3 it takes about 4 ms to make 1000 injections.
