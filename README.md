@@ -1,10 +1,17 @@
 # Behaviour Inject for Unity3d #
 
-This is inversion of control tool for unity MonoBehaviour. And it's simple and easy to use as a stick. Simple means reliable. There are only 6 script files with approximately 300 lines of code. You may easily handle it, support it or even extend it in the way you like. Although it provides crutial features of reflective dependency injection:
+This is simple and reliable inversion of control tool for Unity3d. There are few script files with approximately 400 lines of code. Yet it provides crutial features of reflective dependency injection:
 - resolving interfaces;
 - injection to MonoBehaviour properties or fields;
 - poco object autocomposition with constructor injection;
 - using factories;
+
+### What is it for? ###
+Average project eventually meets difficulties with myriads of links and connections between classes. Especially in Unity, where you have no strict composition root, MonoBehaviours in most cases has independent lifecycles and you have to use either singletons or "FindObjectsOfType" stuff to connect things to each other creating mess of links and mutual dependencies. Code comes really hard to support and develop.
+
+This is where Dependency Injection comes to help. You just define core classes and interfaces for you logic, mark required links with [Inject] and then DI does all the magic linking things to each other (with reflection). No headache with passing tons of instances through composition tree, uncontrollable dirty singletons or creating all-mighty God-objects that owns and controls everything. Classes should know only things that they really need. You are free to separate, encapsulate, create interfaces, use polymorphism and have full conrol over links in your logic in simple and elegant way.
+
+BehaviourInject is done especially for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
 
 ## How to ##
 
@@ -40,10 +47,17 @@ public class MyBehaviour : MonoBehaviour
     
     [Inject]
     private MyDataModel _model;
+    
+    [Inject]
+    public void Init(One one, Two two, Three three)
+    {
+    	//most correct way to inject dependencies
+    	...
+    }
 }
 ```
 
-Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that InjectorBehaviour awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => InjectorBehaviour => InjectionTargets.
+Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that InjectorBehaviour awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => InjectorBehaviour => InjectionTargets. Consider using 'Script Execution Order' feature in Unity.
 
 ## Multiple contexts ##
 
@@ -60,7 +74,7 @@ It is also possible to destroy context (if it's bound to scene for example) simp
 
 You may create parent context that allow you to share dependencies between multiple contexts:
 
-```charp
+```csharp
 new Context("my_context")
 	.SetParentContext("base");
 ```
@@ -96,10 +110,10 @@ public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
         Settings settings = new Settings("127.9.1.1");
-        Context context1 = new Context();
-        context1.RegisterDependency(settings);
-        context1.RegisterType<Core>();
-        context1.RegisterType<Connection>();
+        Context context1 = new Context()
+		.RegisterDependency(settings)
+		.RegisterType<Core>()
+		.RegisterType<Connection>();
     }
 }
 
@@ -214,4 +228,4 @@ There are example scenes and behaviours for simple injections, autocompositions 
 
 ## Benchmark ##
 
-On intel i5 3.2Ghz and Unity 5.3 it takes about 4 ms to make 1000 injections.
+On intel i5 3.2Ghz and Unity 5.5 it takes about 4 ms to make 1000 injections.
