@@ -47,6 +47,14 @@ namespace BehaviourInject.Internal
 					injections.Add(new FieldInjection(field));
 			}
 
+			MethodInfo[] methods = type.GetMethods();
+			for (int i = 0; i < methods.Length; i++)
+			{
+				MethodInfo method = methods[i];
+				if (IsInjectable(method))
+					injections.Add(new MethodInjection(method));
+			}
+
 			return injections.ToArray();
 		}
 

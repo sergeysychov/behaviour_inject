@@ -68,8 +68,7 @@ namespace BehaviourInject
 
 			foreach (IBehaviourInjection injection in injections)
 			{
-				object dependency = _context.Resolve(injection.DependencyType);
-				injection.Inject(behaviour, dependency);
+				injection.Inject(behaviour, _context);
 			}
 		}
 

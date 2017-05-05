@@ -4,17 +4,21 @@ using BehaviourInject;
 
 public class TestBeahviour2 : MonoBehaviour {
 
-    [Inject]
-    public DataModel Model { get; set; }
-
-    [Inject]
-    public IReader Reader { get; set; }
-
-
+	public DataModel _model;
+	public IReader _reader;
+	
 	void Start () {
         Debug.Log(gameObject.name + " TB2");
-        Debug.Log(Model.Data);
-        Debug.Log(Reader.Read());
+        Debug.Log(_model.Data);
+        Debug.Log(_reader.Read());
+	}
+
+
+	[Inject]
+	public void Init(DataModel model, IReader reader)
+	{
+		_model = model;
+		_reader = reader;
 	}
 	
 	[InjectEvent]
