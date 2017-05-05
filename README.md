@@ -7,7 +7,7 @@ This is simple and reliable inversion of control tool for Unity3d. There are few
 - using factories;
 
 ### What is it for? ###
-Average project eventually meet difficulties with myriads of links and connections between classes. Especially in Unity, where you have no strict composition root, MonoBehaviours in most cases has independent lifecycles and you have to use either singletons or "FindObjectsOfType" stuff to connect things to each other creating mess of links and mutual dependencies. Code comes really hard to support and develop.
+Average project eventually meets difficulties with myriads of links and connections between classes. Especially in Unity, where you have no strict composition root, MonoBehaviours in most cases has independent lifecycles and you have to use either singletons or "FindObjectsOfType" stuff to connect things to each other creating mess of links and mutual dependencies. Code comes really hard to support and develop.
 
 This is where Dependency Injection comes to help. You just define core classes and interfaces for you logic, mark required links with [Inject] and then DI does all the magic linking things to each other (with reflection). No headache with passing tons of instances through composition tree, uncontrollable dirty singletons or creating all-mighty God-objects that owns and controls everything. Classes should know only things that they really need. You are free to separate, encapsulate, create interfaces, use polymorphism and have full conrol over links in your logic in simple and elegant way.
 
@@ -47,6 +47,13 @@ public class MyBehaviour : MonoBehaviour
     
     [Inject]
     private MyDataModel _model;
+    
+    [Inject]
+    public void Init(One one, Two two, Three three)
+    {
+    	//most correct way to inject dependencies
+    	...
+    }
 }
 ```
 
@@ -103,10 +110,10 @@ public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
         Settings settings = new Settings("127.9.1.1");
-        Context context1 = new Context();
-        context1.RegisterDependency(settings);
-        context1.RegisterType<Core>();
-        context1.RegisterType<Connection>();
+        Context context1 = new Context()
+		.RegisterDependency(settings)
+		.RegisterType<Core>()
+		.RegisterType<Connection>();
     }
 }
 
