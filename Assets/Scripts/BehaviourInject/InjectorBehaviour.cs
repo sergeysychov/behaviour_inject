@@ -40,10 +40,11 @@ namespace BehaviourInject
         void Awake()
         {
             _context = ContextRegistry.GetContext(_contextName);
-			FindAndResolveDependencies();
 			_eventManager = _context.EventManager;
 			_eventManager.EventInjectors += InjectBlindEvent;
-        }
+
+			FindAndResolveDependencies();
+		}
 
 
         public void FindAndResolveDependencies()
@@ -55,8 +56,8 @@ namespace BehaviourInject
 				if (component == this)
 					continue;
 
-                InjectToBehaviour(component);
-            }
+				InjectToBehaviour(component);
+			}
         }
 
 
