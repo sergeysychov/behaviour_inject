@@ -194,6 +194,8 @@ public class GameDependentBehaviour : MonoBehaviour {
 
 ## Events ##
 
+Awesome events that dont even need to be subscribed/unsubscribed for. They just arrives via DI system at any classes and behaviours that participated in injection by listener fuction argument type. All you need is just define method with SomeExcempleEvent type argument and mark it with [InjectEvent] attribute.
+
 Event model in BehaviourInject assumes that event sender resolves interface IEventDispatcher via DI and call DispatchEvent to dispatch event as object of any type except of value types.
 
 ```csharp
