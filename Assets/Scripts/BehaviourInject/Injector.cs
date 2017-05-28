@@ -25,11 +25,12 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using BehaviourInject.Internal;
 
 namespace BehaviourInject
 {
-    public class InjectorBehaviour : MonoBehaviour
+	public class Injector : MonoBehaviour
     {
         [SerializeField]
         private string _contextName = Context.DEFAULT;

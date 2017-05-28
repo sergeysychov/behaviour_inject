@@ -20,11 +20,11 @@ public class Benchmark : MonoBehaviour
 
     public int _iterations = 1000;
 
-    private InjectorBehaviour _injector;
+    private Injector _injector;
 
     void Start()
     {
-        _injector = GetComponent<InjectorBehaviour>();
+        _injector = GetComponent<Injector>();
 
         Stopwatch watch = new Stopwatch();
         watch.Start();

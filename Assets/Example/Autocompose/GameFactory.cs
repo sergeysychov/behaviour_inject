@@ -5,7 +5,7 @@ using System.Text;
 using BehaviourInject;
 using UnityEngine;
 
-public class GameFactory : DependencyFactory
+public class GameFactory : DependencyFactory<Game>
 {
     private Connection _connection;
 
@@ -16,7 +16,7 @@ public class GameFactory : DependencyFactory
     }
 
 
-    public object Create()
+    public Game Create()
     {
         Debug.Log("create game from factory. Connected = " + _connection.Connected);
         

@@ -37,7 +37,7 @@ namespace BehaviourInject
 
         private Dictionary<Type, object> _dependencies;
 		private List<object> _listedDependencies;
-        private Dictionary<Type, DependencyFactory> _factories;
+        private Dictionary<Type, IFactoryFacade> _factories;
         private HashSet<Type> _autoCompositionTypes;
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
@@ -55,7 +55,7 @@ namespace BehaviourInject
 			ContextRegistry.RegisterContext(name, this);
 			_dependencies = new Dictionary<Type, object>();
 			_listedDependencies = new List<object>();
-			_factories = new Dictionary<Type, DependencyFactory>();
+			_factories = new Dictionary<Type, IFactoryFacade>();
 			_autoCompositionTypes = new HashSet<Type>();
 			
 			EventManager = new EventManager();
@@ -132,24 +132,24 @@ namespace BehaviourInject
         }
 
 
-        public Context RegisterFactory<T>(DependencyFactory factory)
+        public Context RegisterFactory<T>(DependencyFactory<T> factory)
         {
             ThrowIfNull(factory, "factory");
             Type dependencyType = typeof(T);
             ThrowIfRegistered(dependencyType);
-            _factories.Add(dependencyType, factory);
+            _factories.Add(dependencyType, new DependencyFactoryFacade<T>(factory));
 			return this;
         }
 
 
-        public Context RegisterFactory<T, FactoryT>()
+        public Context RegisterFactory<T, FactoryT>() where FactoryT : DependencyFactory<T>
         {
             Type factoryType = typeof(FactoryT);
             Type dependencyType = typeof(T);
             ThrowIfRegistered(dependencyType);
             RegisterType<FactoryT>();
-            DependencyFactory factory = (DependencyFactory)Resolve(factoryType);
-            _factories.Add(dependencyType, factory);
+            DependencyFactory<T> factory = (DependencyFactory<T>)Resolve(factoryType);
+            _factories.Add(dependencyType, new DependencyFactoryFacade<T>(factory));
 			return this;
         }
 
