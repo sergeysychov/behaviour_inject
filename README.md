@@ -11,7 +11,7 @@ Average project eventually meets difficulties with myriads of links and connecti
 
 This is where Dependency Injection comes to help. You just define core classes and interfaces for you logic, mark required links with [Inject] and then DI does all the magic linking things to each other (with reflection). No headache with passing tons of instances through composition tree, uncontrollable dirty singletons or creating all-mighty God-objects that owns and controls everything. Classes should know only things that they really need. You are free to separate, encapsulate, create interfaces, use polymorphism and have full conrol over links in your logic in simple and elegant way.
 
-BehaviourInject is done especially for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
+BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
 
 ## How to ##
 
@@ -167,14 +167,14 @@ public class InitiatorBehavour : MonoBehaviour
     }
 }
 
-public class GameFactory : DependencyFactory
+public class GameFactory : DependencyFactory<Game>
 {
     public GameFactory(Connection connection)
     {
         ...
     }
 
-    public object Create()
+    public Game Create()
     {
         if (_connection.Connected)
             return new Game(1, "connected game");
