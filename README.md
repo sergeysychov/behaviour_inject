@@ -18,12 +18,12 @@ BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows inje
 For most cases you will need only three entities:
 
 * Context class
-* InjectorBehaviour behaviour
+* Injector behaviour
 * [Inject] attribute
 
 ### Initialization ###
 
-Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and InjectorBehaviour.
+Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and Injector.
 
 ```csharp
 void Awake(){
@@ -35,7 +35,7 @@ void Awake(){
 
 ### Injection ###
 
-Place 'InjectorBehaviour' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
+Place 'Injector' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
 
 In your MonoBehaviour mark dependency in this way:
 
@@ -57,7 +57,7 @@ public class MyBehaviour : MonoBehaviour
 }
 ```
 
-Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that InjectorBehaviour awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => InjectorBehaviour => InjectionTargets. Consider using 'Script Execution Order' feature in Unity.
+Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that Injector awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => Injector => Your code. Consider using 'Script Execution Order' feature in Unity.
 
 ## Multiple contexts ##
 
@@ -65,7 +65,7 @@ If you need multiple contexts at once, you may provide context name in it's cons
 ```csharp 
 new Context("my_context"); 
 ```
-Then you should specify InjectorBehaviour to use this context by setting сorresponding name in inspector.
+Then you should specify Injector to use this context by setting сorresponding name in inspector.
 If no argument is passed context will be named "default".
 
 You can not have multiple contexts with the same name at once.
