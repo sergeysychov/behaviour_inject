@@ -34,6 +34,7 @@ namespace BehaviourInject
     public class Context : IContextParent
     {
 		public const string DEFAULT = "default";
+		private const int MAX_HIERARCHY_DEPTH = 32;
 
         private Dictionary<Type, object> _dependencies;
 		private List<object> _listedDependencies;
@@ -83,13 +84,14 @@ namespace BehaviourInject
 
 		private void OnBlindEventHandler(object evnt)
 		{
+			Type eventType = evnt.GetType();
 			for (int i = 0; i < _listedDependencies.Count; i++)
 			{
 				object dependency = _listedDependencies[i];
 				Type dependencyType = dependency.GetType();
 				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(dependencyType);
 				foreach (BlindEventHandler handler in handlers)
-					if (handler.IsSuitableForEvent(evnt.GetType()))
+					if (handler.IsSuitableForEvent(eventType))
 						handler.Invoke(dependency, evnt);
 			}
 		}
@@ -163,15 +165,36 @@ namespace BehaviourInject
         }
 
 
-		public bool TryResolve(Type resolvingType, out object dependency)
+		public object Resolve(Type resolvingType)
 		{
+			object dependency;
+
+			if(! TryResolve(resolvingType, out dependency))
+				throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+
+			return dependency;
+		}
+		
+
+		public bool TryResolve(Type resolvingType, out object dependency)
+		{ return TryResolve(resolvingType, out dependency, 0); }
+
+
+		private bool TryResolve(Type resolvingType, out object dependency, int hierarchyDepthCount)
+		{
+			//UnityEngine.Debug.Log("resolving " + resolvingType.Name + " lvl " + hierarchyDepthCount);
+			if (hierarchyDepthCount > MAX_HIERARCHY_DEPTH)
+				throw new BehaviourInjectException(String.Format("You have reached maximum hierarchy depth ({0}). Probably recursive dependencies are occured in {1}", MAX_HIERARCHY_DEPTH, resolvingType.FullName));
+			else
+				hierarchyDepthCount++;
+
 			object parentDependency;
 			if (_dependencies.ContainsKey(resolvingType))
 				dependency = _dependencies[resolvingType];
 			else if (_factories.ContainsKey(resolvingType))
 				dependency = _factories[resolvingType].Create();
 			else if (_autoCompositionTypes.Contains(resolvingType))
-				dependency = AutocomposeDependency(resolvingType);
+				dependency = AutocomposeDependency(resolvingType, hierarchyDepthCount);
 			else if (_parentContext.TryResolve(resolvingType, out parentDependency))
 				dependency = parentDependency;
 			else
@@ -183,18 +206,8 @@ namespace BehaviourInject
 			return true;
 		}
 
-		public object Resolve(Type resolvingType)
-        {
-			object dependency;
 
-			if(! TryResolve(resolvingType, out dependency))
-				throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
-
-			return dependency;
-        }
-
-
-        private object AutocomposeDependency(Type resolvingType)
+		private object AutocomposeDependency(Type resolvingType, int hierarchyDepthCount)
         {
             ConstructorInfo constructor = FindAppropriateConstructor(resolvingType);
             ParameterInfo[] parameters = constructor.GetParameters();
@@ -205,10 +218,10 @@ namespace BehaviourInject
                 ParameterInfo parameter = parameters[i];
                 Type argumentType = parameter.ParameterType;
 
-                if (argumentType == resolvingType)
-                    throw new BehaviourInjectException("Cyclic dependency occured: " + argumentType.FullName);
-
-                arguments[i] = Resolve(argumentType);
+				object dependency;
+				if (!TryResolve(argumentType, out dependency, hierarchyDepthCount))
+					throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+				arguments[i] = dependency;
             }
 
             object result = constructor.Invoke(arguments);

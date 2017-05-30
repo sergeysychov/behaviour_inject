@@ -13,6 +13,13 @@ namespace BehaviourInject.Internal
 
 		public void DispatchEvent(object evnt)
 		{
+			if (evnt == null)
+				throw new BehaviourInjectException("Dispatched event can not be null");
+			Type eventType = evnt.GetType();
+
+			if(eventType.IsValueType)
+				throw new BehaviourInjectException("Dispatched event can not be value type");
+			
 			EventInjectors(evnt);
 		}
 

@@ -23,9 +23,7 @@ SOFTWARE.
 */
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using BehaviourInject.Internal;
 
 namespace BehaviourInject
@@ -77,16 +75,17 @@ namespace BehaviourInject
 
 		private void InjectBlindEvent(object blindEvent)
 		{
+			Type eventType = blindEvent.GetType();
 			MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
 			foreach (MonoBehaviour component in components)
 			{
 				if (component == this)
 					continue;
-
-				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(component.GetType());
+				Type componentType = component.GetType();
+				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType);
 				foreach (BlindEventHandler handler in handlers)
 				{
-					if (handler.IsSuitableForEvent(blindEvent.GetType()))
+					if (handler.IsSuitableForEvent(eventType))
 						handler.Invoke(component, blindEvent);
 				}
 			}
