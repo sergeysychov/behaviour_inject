@@ -38,6 +38,8 @@ void Awake(){
 
 Place 'Injector' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
 
+![alt text](Doc/placing_injector.JPG)
+
 In your MonoBehaviour mark dependency in this way:
 
 ```csharp
@@ -59,6 +61,8 @@ public class MyBehaviour : MonoBehaviour
 ```
 
 Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that Injector awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => Injector => Your code. Consider using 'Script Execution Order' feature in Unity.
+
+![alt text](Doc/execution_order.JPG)
 
 ## Multiple contexts ##
 
