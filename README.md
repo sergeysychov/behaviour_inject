@@ -184,10 +184,15 @@ public class GameFactory : DependencyFactory<Game>
 }
 
 
-public class GameDependentBehaviour : MonoBehaviour {
+public class GameDependentBehaviour : MonoBehaviour 
+{
     //created with factory!
     [Inject]
     public Game MyGame { get; set; }
+    
+    //factory itself can be resolved as well to create dependencies manually
+    [Inject]
+    public GameFactory Factory { get; set; }
 }
 
 ```
