@@ -2,9 +2,10 @@
 
 This is lightweight and easy to use inversion of control tool for Unity3d. There are few script files with approximately 400 lines of code. Yet it provides crutial features of reflective dependency injection:
 - resolving interfaces;
-- injection to MonoBehaviour properties or fields;
-- poco object autocomposition with constructor injection;
-- using factories;
+- injection to MonoBehaviour properties, fields or methods;
+- hierarchy autocomposition with constructor injection;
+- factories;
+- event injection;
 
 ### What is it for? ###
 Average project eventually meets difficulties with myriads of links and connections between classes. Especially in Unity, where you have no strict composition root, MonoBehaviours in most cases has independent lifecycles and you have to use either singletons or "FindObjectsOfType" stuff to connect things to each other creating mess of links and mutual dependencies. Code comes really hard to support and develop.
