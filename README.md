@@ -28,7 +28,7 @@ Use any of your behaviours to settle following code. Make shure that it awakes B
 
 ```csharp
 void Awake(){
-    MyDataModel model = new MyDataModel(); //Any of your dependenies
+    MyDataModel model = new MyDataModel(); //Any of your dependencies
     Context context = new Context();
     context.RegisterDependency(model);
 }
