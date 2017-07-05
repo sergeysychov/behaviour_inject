@@ -2,9 +2,10 @@
 
 This is lightweight and easy to use inversion of control tool for Unity3d. There are few script files with approximately 400 lines of code. Yet it provides crutial features of reflective dependency injection:
 - resolving interfaces;
-- injection to MonoBehaviour properties or fields;
-- poco object autocomposition with constructor injection;
-- using factories;
+- injection to MonoBehaviour properties, fields or methods;
+- hierarchy autocomposition with constructor injection;
+- factories;
+- event injection;
 
 ### What is it for? ###
 Average project eventually meets difficulties with myriads of links and connections between classes. Especially in Unity, where you have no strict composition root, MonoBehaviours in most cases has independent lifecycles and you have to use either singletons or "FindObjectsOfType" stuff to connect things to each other creating mess of links and mutual dependencies. Code comes really hard to support and develop.
@@ -27,7 +28,7 @@ Use any of your behaviours to settle following code. Make shure that it awakes B
 
 ```csharp
 void Awake(){
-    MyDataModel model = new MyDataModel(); //Any of your dependenies
+    MyDataModel model = new MyDataModel(); //Any of your dependencies
     Context context = new Context();
     context.RegisterDependency(model);
 }
@@ -36,6 +37,8 @@ void Awake(){
 ### Injection ###
 
 Place 'Injector' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
+
+![alt text](Doc/placing_injector.JPG)
 
 In your MonoBehaviour mark dependency in this way:
 
@@ -58,6 +61,8 @@ public class MyBehaviour : MonoBehaviour
 ```
 
 Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that Injector awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => Injector => Your code. Consider using 'Script Execution Order' feature in Unity.
+
+![alt text](Doc/execution_order.JPG)
 
 ## Multiple contexts ##
 
@@ -184,10 +189,15 @@ public class GameFactory : DependencyFactory<Game>
 }
 
 
-public class GameDependentBehaviour : MonoBehaviour {
+public class GameDependentBehaviour : MonoBehaviour 
+{
     //created with factory!
     [Inject]
     public Game MyGame { get; set; }
+    
+    //factory itself can be resolved as well to create dependencies manually
+    [Inject]
+    public GameFactory Factory { get; set; }
 }
 
 ```
