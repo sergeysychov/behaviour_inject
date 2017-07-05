@@ -31,4 +31,11 @@ namespace BehaviourInject
         public BehaviourInjectException(string message) : base(message)
         { }
     }
+
+	public class ContextCreationException : BehaviourInjectException
+    {
+		public ContextCreationException(string message)
+			: base(message)
+        { }
+    }
 }

@@ -30,15 +30,16 @@ namespace BehaviourInject
 {
 	public class Injector : MonoBehaviour
     {
-        [SerializeField]
-        private string _contextName = Context.DEFAULT;
+		[SerializeField]
+		[ChooseContextDrawer]
+        private int _contextIndex = 0;
 
         private Context _context;
 		private EventManager _eventManager;
 
         void Awake()
         {
-            _context = ContextRegistry.GetContext(_contextName);
+            _context = ContextRegistry.GetContext(_contextIndex);
 			_eventManager = _context.EventManager;
 			_eventManager.EventInjectors += InjectBlindEvent;
 
@@ -95,6 +96,12 @@ namespace BehaviourInject
 		void OnDestroy()
 		{
 			_eventManager.EventInjectors -= InjectBlindEvent;
+		}
+
+
+		public int TargetedContextIndex { 
+			get { return _contextIndex; }
+			set { _contextIndex = value; }
 		}
 	}
 

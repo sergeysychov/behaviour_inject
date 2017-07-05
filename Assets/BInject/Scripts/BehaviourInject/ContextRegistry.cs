@@ -34,15 +34,28 @@ namespace BehaviourInject.Internal
         private static Dictionary<string, Context> _contextRegistry = new Dictionary<string, Context>();
 
         public static void RegisterContext(string name, Context context)
-        {
+		{
+			if (ContextNameDoesntExist(name))
+				throw new ContextCreationException(String.Format("Context name \"{0}\" has to be enlisted in settings.", name));
+
             if (context == null)
-                throw new BehaviourInjectException("You tried to register null context. Wait... why the heck are you even using this method???");
+				throw new ContextCreationException("You tried to register null context. Wait... why the heck are you even using this method???");
 
             if (_contextRegistry.ContainsKey(name))
-                throw new BehaviourInjectException(String.Format("Context with name \"{0}\" already exists!", name));
+				throw new ContextCreationException(String.Format("Context with name \"{0}\" already exists!", name));
 
             _contextRegistry.Add(name, context);
         }
+
+
+		private static bool ContextNameDoesntExist(string name)
+		{
+			string[] names = Settings.GetContextNames();
+			for (int i = 0; i < names.Length; i++)
+				if (names[i] == name)
+					return false;
+			return true;
+		}
 
 
         public static void UnregisterContext(string name)
@@ -60,6 +73,15 @@ namespace BehaviourInject.Internal
                 throw new BehaviourInjectException(String.Format("Context with name \"{0}\" does not exist!", name));
 
             return _contextRegistry[name];
+        }
+
+        public static Context GetContext(int index)
+		{
+			string[] names = Settings.GetContextNames();
+			if (index >= names.Length)
+				throw new BehaviourInjectException("Context index out of bounds " + index);
+
+			return GetContext(names[index]);
         }
     }
 }
