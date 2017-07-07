@@ -40,6 +40,7 @@ namespace BehaviourInject
 		private List<object> _listedDependencies;
         private Dictionary<Type, IFactoryFacade> _factories;
         private HashSet<Type> _autoCompositionTypes;
+		private Dictionary<Type, List<Type>> _commands;
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
 
@@ -58,6 +59,7 @@ namespace BehaviourInject
 			_listedDependencies = new List<object>();
 			_factories = new Dictionary<Type, IFactoryFacade>();
 			_autoCompositionTypes = new HashSet<Type>();
+			_commands = new Dictionary<Type, List<Type>>();
 			
 			EventManager = new EventManager();
 			EventManager.EventInjectors += OnBlindEventHandler;
@@ -88,11 +90,34 @@ namespace BehaviourInject
 			for (int i = 0; i < _listedDependencies.Count; i++)
 			{
 				object dependency = _listedDependencies[i];
-				Type dependencyType = dependency.GetType();
-				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(dependencyType);
-				foreach (BlindEventHandler handler in handlers)
-					if (handler.IsSuitableForEvent(eventType))
-						handler.Invoke(dependency, evnt);
+				InjectEventTo(dependency, eventType, evnt);
+			}
+
+			if (_commands.ContainsKey(eventType))
+				ExecuteCommands(_commands[eventType], evnt);
+		}
+
+
+		private void InjectEventTo(object recipient, Type eventType, object evt)
+		{
+			Type recipientType = recipient.GetType();
+			BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(recipientType);
+			foreach (BlindEventHandler handler in handlers)
+				if (handler.IsSuitableForEvent(eventType))
+					handler.Invoke(recipient, evt);
+		}
+
+
+		private void ExecuteCommands(List<Type> commands, object evt)
+		{
+			Type eventType = evt.GetType();
+			for (int i = 0; i < commands.Count; i++)
+			{
+				Type commandType = commands[i];
+				ICommand command = (ICommand)AutocomposeDependency(commandType, 0);
+				command.Execute();
+				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(commandType);
+				InjectEventTo(command, eventType, evt);
 			}
 		}
 
@@ -163,6 +188,24 @@ namespace BehaviourInject
             _autoCompositionTypes.Add(dependencyType);
 			return this;
         }
+
+
+		public Context RegisterCommand<T, U>() where U : ICommand
+		{
+			Type eventType = typeof(T);
+			Type commandType = typeof(U);
+
+			if (!_commands.ContainsKey(eventType))
+				_commands.Add(eventType, new List<Type>());
+
+			List<Type> commands = _commands[eventType];
+
+			if (commands.Contains(commandType))
+				throw new ContextCreationException(String.Format("Context {0} already contains command {1} on event {2}", _name, commandType, eventType));
+
+			commands.Add(commandType);
+			return this;
+		}
 
 
 		public object Resolve(Type resolvingType)
