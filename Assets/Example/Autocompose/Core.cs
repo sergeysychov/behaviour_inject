@@ -7,7 +7,7 @@ public class Core
 {
     private Connection _connection;
 
-    public Core(Connection connection)
+    public Core(Connection connection, MyData data)
     {
         _connection = connection;
     }
@@ -17,4 +17,10 @@ public class Core
     {
         return _connection.Read();
     }
+}
+
+
+public class MyData
+{
+
 }

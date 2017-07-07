@@ -72,7 +72,7 @@ namespace BehaviourInject
 		public Context SetParentContext(string parentName)
 		{
 			if (_name == parentName)
-				throw new BehaviourInjectException("Scopes can not be cycled: " + _name + " - " + parentName);
+				throw new ContextCreationException("Scopes can not be cycled: " + _name + " - " + parentName);
 
 			EventManager.ClearParent();
 
@@ -115,9 +115,9 @@ namespace BehaviourInject
 			{
 				Type commandType = commands[i];
 				ICommand command = (ICommand)AutocomposeDependency(commandType, 0);
-				command.Execute();
 				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(commandType);
 				InjectEventTo(command, eventType, evt);
+				command.Execute();
 			}
 		}
 
@@ -155,7 +155,7 @@ namespace BehaviourInject
         private void ThrowIfRegistered(Type dependencyType)
         {
             if (_dependencies.ContainsKey(dependencyType) || _factories.ContainsKey(dependencyType) || _autoCompositionTypes.Contains(dependencyType))
-                throw new BehaviourInjectException(dependencyType.FullName + " is already registered in this context");
+                throw new ContextCreationException(dependencyType.FullName + " is already registered in this context");
         }
 
 
@@ -190,10 +190,10 @@ namespace BehaviourInject
         }
 
 
-		public Context RegisterCommand<T, U>() where U : ICommand
+		public Context RegisterCommand<EventT, CommandT>() where CommandT : ICommand
 		{
-			Type eventType = typeof(T);
-			Type commandType = typeof(U);
+			Type eventType = typeof(EventT);
+			Type commandType = typeof(CommandT);
 
 			if (!_commands.ContainsKey(eventType))
 				_commands.Add(eventType, new List<Type>());
@@ -237,7 +237,10 @@ namespace BehaviourInject
 			else if (_factories.ContainsKey(resolvingType))
 				dependency = _factories[resolvingType].Create();
 			else if (_autoCompositionTypes.Contains(resolvingType))
+			{
 				dependency = AutocomposeDependency(resolvingType, hierarchyDepthCount);
+				InsertDependency(resolvingType, dependency);
+			}
 			else if (_parentContext.TryResolve(resolvingType, out parentDependency))
 				dependency = parentDependency;
 			else
@@ -268,7 +271,6 @@ namespace BehaviourInject
             }
 
             object result = constructor.Invoke(arguments);
-			InsertDependency(resolvingType, result);
 
             return result;
         }
@@ -305,6 +307,20 @@ namespace BehaviourInject
             object[] attributes = constructor.GetCustomAttributes(typeof(InjectAttribute), true);
             return attributes.Length > 0;
         }
+
+
+		public Context CreateAll()
+		{
+			foreach (Type dependencyType in _autoCompositionTypes)
+			{
+				if (!_dependencies.ContainsKey(dependencyType))
+				{
+					object dependency = AutocomposeDependency(dependencyType, 0);
+					InsertDependency(dependencyType, dependency);
+				}
+			}
+			return this;
+		}
 
         
         public void Destroy()

@@ -13,7 +13,8 @@ namespace BehaviourInject.Example
 
 			new Context("green")
 				.SetParentContext(Context.DEFAULT)
-				.RegisterDependency(new TileStyle(Color.green, "GREEN"));
+				.RegisterDependency(new TileStyle(Color.green, "GREEN"))
+				.RegisterCommand<StyleChangedEvent, StyleCommand>();
 
 			new Context("blue")
 				.SetParentContext(Context.DEFAULT)
