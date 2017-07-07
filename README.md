@@ -36,7 +36,7 @@ void Awake(){
 
 ### Injection ###
 
-Place 'Injector' at first place in the GameObject, adjacently to your dependent behaviours. "Context name" field defines optional context name. Thus you can use multiple contexts simultaneously.
+Place 'Injector' at first place in the GameObject, adjacently to your dependent behaviours. "Context" dropdown defines what context you are now using. Thus you can use multiple contexts simultaneously.
 
 ![alt text](Doc/placing_injector.JPG)
 
@@ -66,11 +66,11 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 
 ## Multiple contexts ##
 
-If you need multiple contexts at once, you may provide context name in it's constructor 
+If you need multiple contexts at once, you need to add it's name in *BInject/Resources/BInjectSettings* and provide that name in constructor 
 ```csharp 
 new Context("my_context"); 
 ```
-Then you should specify Injector to use this context by setting сorresponding name in inspector.
+Then you should specify Injector to use this context by setting сorresponding context in inspector.
 If no argument is passed context will be named "default".
 
 You can not have multiple contexts with the same name at once.

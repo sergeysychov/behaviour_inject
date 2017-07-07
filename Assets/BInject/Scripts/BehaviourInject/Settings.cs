@@ -13,6 +13,10 @@ namespace BehaviourInject.Internal
 
 		private static Settings _instance;
 
+		[Tooltip("List of contexts")]
+		[SerializeField]
+		public string[] ContextNames = { };
+
 		public static string[] GetContextNames()
 		{
 			if(_instance == null)
@@ -28,7 +32,5 @@ namespace BehaviourInject.Internal
 			Settings settings = Resources.Load<Settings>(SETTINGS_PATH);
 			return settings;
 		}
-
-		public string[] ContextNames = { Context.DEFAULT };
 	}
 }
