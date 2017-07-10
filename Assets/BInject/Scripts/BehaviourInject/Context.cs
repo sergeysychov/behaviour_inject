@@ -266,7 +266,8 @@ namespace BehaviourInject
 
 				object dependency;
 				if (!TryResolve(argumentType, out dependency, hierarchyDepthCount))
-					throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+					throw new BehaviourInjectException(String.Format("Could not resolve {0} in context {1}. Probably it's not registered", argumentType.FullName, _name));
+
 				arguments[i] = dependency;
             }
 
