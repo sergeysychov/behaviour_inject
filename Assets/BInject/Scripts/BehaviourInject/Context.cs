@@ -40,7 +40,8 @@ namespace BehaviourInject
 		private List<object> _listedDependencies;
         private Dictionary<Type, IFactoryFacade> _factories;
         private HashSet<Type> _autoCompositionTypes;
-		private Dictionary<Type, List<Type>> _commands;
+		private List<CommandEntry> _commands;
+		private Dictionary<Type, CommandEntry> _commandsByEvent;
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
 
@@ -55,11 +56,12 @@ namespace BehaviourInject
 		{
 			_name = name;
 			ContextRegistry.RegisterContext(name, this);
-			_dependencies = new Dictionary<Type, object>();
-			_listedDependencies = new List<object>();
-			_factories = new Dictionary<Type, IFactoryFacade>();
+			_dependencies = new Dictionary<Type, object>(32);
+			_listedDependencies = new List<object>(32);
+			_factories = new Dictionary<Type, IFactoryFacade>(32);
 			_autoCompositionTypes = new HashSet<Type>();
-			_commands = new Dictionary<Type, List<Type>>();
+			_commands = new List<CommandEntry>(32);
+			_commandsByEvent = new Dictionary<Type, CommandEntry>(32);
 			
 			EventManager = new EventManager();
 			EventManager.EventInjectors += OnBlindEventHandler;
@@ -93,8 +95,14 @@ namespace BehaviourInject
 				InjectEventTo(dependency, eventType, evnt);
 			}
 
-			if (_commands.ContainsKey(eventType))
-				ExecuteCommands(_commands[eventType], evnt);
+
+			for (int i = 0; i < _commands.Count; i++)
+			{
+				CommandEntry commandEntry = _commands[i];
+				bool isSuitable = commandEntry.EventType.IsAssignableFrom(eventType);
+				if (isSuitable)
+					ExecuteCommands(commandEntry.CommandTypes, evnt);
+			}
 		}
 
 
@@ -195,11 +203,15 @@ namespace BehaviourInject
 			Type eventType = typeof(EventT);
 			Type commandType = typeof(CommandT);
 
-			if (!_commands.ContainsKey(eventType))
-				_commands.Add(eventType, new List<Type>());
+			if (!_commandsByEvent.ContainsKey(eventType))
+			{
+				var newEntry = new CommandEntry(eventType);
+					_commandsByEvent.Add(eventType, newEntry);
+					_commands.Add(newEntry);
+			}
 
-			List<Type> commands = _commands[eventType];
-
+			CommandEntry entry = _commandsByEvent[eventType];
+			List<Type> commands = entry.CommandTypes;
 			if (commands.Contains(commandType))
 				throw new ContextCreationException(String.Format("Context {0} already contains command {1} on event {2}", _name, commandType, eventType));
 
