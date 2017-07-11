@@ -327,7 +327,27 @@ namespace BehaviourInject
         public void Destroy()
         {
 			EventManager.ClearParent();
-            ContextRegistry.UnregisterContext(_name);
+			EventManager.EventInjectors -= OnBlindEventHandler;
+			DisposeDependencies();
+			ContextRegistry.UnregisterContext(_name);
         }
+
+
+		private void DisposeDependencies()
+		{
+			for (int i = 0; i < _listedDependencies.Count; i++)
+			{
+				try
+				{
+					IDisposable disposable = _listedDependencies[i] as IDisposable;
+					if (disposable != null)
+						disposable.Dispose();
+				}
+				catch (Exception e)
+				{
+					UnityEngine.Debug.LogError("During context dispose: " + e.Message + "\r\n" + e.StackTrace);
+				}
+			}
+		}
 	}
 }
