@@ -36,6 +36,7 @@ namespace BehaviourInject
 
         private Context _context;
 		private EventManager _eventManager;
+		private MonoBehaviour[] _componentsCache;
 
         void Awake()
         {
@@ -50,10 +51,11 @@ namespace BehaviourInject
         public void FindAndResolveDependencies()
         {
             MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
+			_componentsCache = components;
 
 			foreach (MonoBehaviour component in components)
 			{
-				if (component == this)
+				if (this == component)
 					continue;
 
 				InjectToBehaviour(component);
@@ -65,9 +67,9 @@ namespace BehaviourInject
         {
 			Type componentType = behaviour.GetType();
 
-			IBehaviourInjection[] injections = ReflectionCache.GetInjections(componentType);
+			IMemberInjection[] injections = ReflectionCache.GetInjections(componentType);
 
-			foreach (IBehaviourInjection injection in injections)
+			foreach (IMemberInjection injection in injections)
 			{
 				injection.Inject(behaviour, _context);
 			}
@@ -77,13 +79,16 @@ namespace BehaviourInject
 		private void InjectBlindEvent(object blindEvent)
 		{
 			Type eventType = blindEvent.GetType();
-			MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
-			foreach (MonoBehaviour component in components)
+			if(_componentsCache == null)
+				_componentsCache = gameObject.GetComponents<MonoBehaviour>();
+
+			foreach (MonoBehaviour component in _componentsCache)
 			{
-				if (component == this)
+				if (this == component)
 					continue;
+
 				Type componentType = component.GetType();
-				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType);
+				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType, eventType);
 				foreach (BlindEventHandler handler in handlers)
 				{
 					if (handler.IsSuitableForEvent(eventType))

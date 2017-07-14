@@ -109,7 +109,7 @@ namespace BehaviourInject
 		private void InjectEventTo(object recipient, Type eventType, object evt)
 		{
 			Type recipientType = recipient.GetType();
-			BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(recipientType);
+			BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(recipientType, eventType);
 			foreach (BlindEventHandler handler in handlers)
 				if (handler.IsSuitableForEvent(eventType))
 					handler.Invoke(recipient, evt);
@@ -123,7 +123,7 @@ namespace BehaviourInject
 			{
 				Type commandType = commands[i];
 				ICommand command = (ICommand)AutocomposeDependency(commandType, 0);
-				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(commandType);
+				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(commandType, eventType);
 				InjectEventTo(command, eventType, evt);
 				command.Execute();
 			}

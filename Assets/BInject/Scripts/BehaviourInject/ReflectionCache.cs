@@ -8,17 +8,19 @@ namespace BehaviourInject.Internal
 	{
 		private static ReflectionCache _instance;
 
-		private Dictionary<Type, IBehaviourInjection[]> _behavioirInjections;
-		private Dictionary<Type, BlindEventHandler[]> _blindEvents;
+		private Dictionary<Type, IMemberInjection[]> _behavioirInjections;
+		//recipient to event to handlers
+		private Dictionary<Type, Dictionary<Type, BlindEventHandler[]>> _blindEvents;
+		private BlindEventHandler[] _emptyHandlers = new BlindEventHandler[0];
 
 		public ReflectionCache()
 		{
-			_behavioirInjections = new Dictionary<Type, IBehaviourInjection[]>();
-			_blindEvents = new Dictionary<Type, BlindEventHandler[]>();
+			_behavioirInjections = new Dictionary<Type, IMemberInjection[]>();
+			_blindEvents = new Dictionary<Type, Dictionary<Type, BlindEventHandler[]>>();
 		}
 
 
-		public IBehaviourInjection[] GetInjectionsFor(Type type)
+		public IMemberInjection[] GetInjectionsFor(Type type)
 		{
 			if (!_behavioirInjections.ContainsKey(type))
 				_behavioirInjections[type] = GenerateInjectionsFor(type);
@@ -27,9 +29,9 @@ namespace BehaviourInject.Internal
 		}
 
 
-		private IBehaviourInjection[] GenerateInjectionsFor(Type type)
+		private IMemberInjection[] GenerateInjectionsFor(Type type)
 		{
-			List<IBehaviourInjection> injections = new List<IBehaviourInjection>();
+			List<IMemberInjection> injections = new List<IMemberInjection>();
 			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			PropertyInfo[] properties = type.GetProperties(flags);
 			for (int i = 0; i < properties.Length; i++)
@@ -59,16 +61,27 @@ namespace BehaviourInject.Internal
 		}
 
 
-		public BlindEventHandler[] GetEventHandlers(Type target)
+		public BlindEventHandler[] GetEventHandlers(Type target, Type evt)
 		{
-			if (!_blindEvents.ContainsKey(target))
-				_blindEvents[target] = GenerateEventHandlers(target);
+			Dictionary<Type, BlindEventHandler[]> eventHandlers;
 
-			return _blindEvents[target];
+			if (!_blindEvents.TryGetValue(target, out eventHandlers))
+			{
+				eventHandlers = new Dictionary<Type, BlindEventHandler[]>();
+				_blindEvents.Add(target, eventHandlers);
+			}
+
+			BlindEventHandler[] handlers;
+			if (!eventHandlers.TryGetValue(evt, out handlers))
+			{
+				handlers = GenerateEventHandlers(target, evt);
+				eventHandlers.Add(evt, handlers);
+			}
+			return handlers;
 		}
 
 
-		private BlindEventHandler[] GenerateEventHandlers(Type target)
+		private BlindEventHandler[] GenerateEventHandlers(Type target, Type evt)
 		{
 			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			List<BlindEventHandler> events = new List<BlindEventHandler>();
@@ -84,14 +97,18 @@ namespace BehaviourInject.Internal
 				if (parametersCount != 1)
 					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event handlers can not have more than one argument!");
 
-				Type eventType = parameters[0].ParameterType;
-				if(eventType.IsValueType)
+				Type eventArgType = parameters[0].ParameterType;
+				if(eventArgType.IsValueType)
 					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
 
-				events.Add(new BlindEventHandler(methodInfo, eventType));
+				if(eventArgType.IsAssignableFrom(evt))
+					events.Add(new BlindEventHandler(methodInfo, eventArgType));
 			}
 
-			return events.ToArray();
+			if (events.Count > 0)
+				return events.ToArray();
+			else
+				return _emptyHandlers;
 		}
 
 		private bool IsInjectable(MemberInfo member)
@@ -112,7 +129,7 @@ namespace BehaviourInject.Internal
 		}
 
 
-		public static IBehaviourInjection[] GetInjections(Type type)
+		public static IMemberInjection[] GetInjections(Type type)
 		{
 			if (_instance == null)
 				_instance = new ReflectionCache();
@@ -120,12 +137,12 @@ namespace BehaviourInject.Internal
 			return _instance.GetInjectionsFor(type);
 		}
 
-		public static BlindEventHandler[] GetEventHandlersFor(Type target)
+		public static BlindEventHandler[] GetEventHandlersFor(Type target, Type evt)
 		{
 			if (_instance == null)
 				_instance = new ReflectionCache();
 
-			return _instance.GetEventHandlers(target);
+			return _instance.GetEventHandlers(target, evt);
 		}
 	}
 }

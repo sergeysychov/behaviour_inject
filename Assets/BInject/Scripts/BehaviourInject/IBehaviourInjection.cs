@@ -3,13 +3,13 @@ using System.Reflection;
 
 namespace BehaviourInject.Internal
 {
-	public interface IBehaviourInjection
+	public interface IMemberInjection
 	{
 		void Inject(object target, Context context);
 	}
 
 
-	public class PropertyInjection : IBehaviourInjection
+	public class PropertyInjection : IMemberInjection
 	{
 		private PropertyInfo _propertyInfo;
 		private Type _dependencyType;
@@ -29,7 +29,7 @@ namespace BehaviourInject.Internal
 		}
 	}
 
-	public class FieldInjection : IBehaviourInjection
+	public class FieldInjection : IMemberInjection
 	{
 		private FieldInfo _fieldInfo;
 		private Type _dependencyType;
@@ -50,7 +50,7 @@ namespace BehaviourInject.Internal
 	}
 
 
-	public class MethodInjection : IBehaviourInjection
+	public class MethodInjection : IMemberInjection
 	{
 		private MethodInfo _methodInfo;
 
