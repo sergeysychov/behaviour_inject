@@ -29,7 +29,6 @@ public class InitiatorBehaviour : MonoBehaviour {
 
         _context2 = new Context(TEST)
 			.SetParentContext(BASE)
-			.RegisterDependency(mockData)
 			.RegisterDependencyAs<MockReader, IReader>(mockReader);
 	}
 

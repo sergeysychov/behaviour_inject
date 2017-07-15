@@ -9,14 +9,12 @@ namespace BehaviourInject.Internal
 		private static ReflectionCache _instance;
 
 		private Dictionary<Type, IMemberInjection[]> _behavioirInjections;
-		//recipient to event to handlers
-		private Dictionary<Type, Dictionary<Type, BlindEventHandler[]>> _blindEvents;
-		private BlindEventHandler[] _emptyHandlers = new BlindEventHandler[0];
+		private Dictionary<Type, BlindEventHandler[]> _blindEvents;
 
 		public ReflectionCache()
 		{
 			_behavioirInjections = new Dictionary<Type, IMemberInjection[]>();
-			_blindEvents = new Dictionary<Type, Dictionary<Type, BlindEventHandler[]>>();
+			_blindEvents = new Dictionary<Type, BlindEventHandler[]>();
 		}
 
 
@@ -61,27 +59,16 @@ namespace BehaviourInject.Internal
 		}
 
 
-		public BlindEventHandler[] GetEventHandlers(Type target, Type evt)
+		public BlindEventHandler[] GetEventHandlers(Type target)
 		{
-			Dictionary<Type, BlindEventHandler[]> eventHandlers;
+			if (!_blindEvents.ContainsKey(target))
+				_blindEvents[target] = GenerateEventHandlers(target);
 
-			if (!_blindEvents.TryGetValue(target, out eventHandlers))
-			{
-				eventHandlers = new Dictionary<Type, BlindEventHandler[]>();
-				_blindEvents.Add(target, eventHandlers);
-			}
-
-			BlindEventHandler[] handlers;
-			if (!eventHandlers.TryGetValue(evt, out handlers))
-			{
-				handlers = GenerateEventHandlers(target, evt);
-				eventHandlers.Add(evt, handlers);
-			}
-			return handlers;
+			return _blindEvents[target];
 		}
 
 
-		private BlindEventHandler[] GenerateEventHandlers(Type target, Type evt)
+		private BlindEventHandler[] GenerateEventHandlers(Type target)
 		{
 			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			List<BlindEventHandler> events = new List<BlindEventHandler>();
@@ -97,18 +84,14 @@ namespace BehaviourInject.Internal
 				if (parametersCount != 1)
 					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event handlers can not have more than one argument!");
 
-				Type eventArgType = parameters[0].ParameterType;
-				if(eventArgType.IsValueType)
+				Type eventType = parameters[0].ParameterType;
+				if(eventType.IsValueType)
 					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
 
-				if(eventArgType.IsAssignableFrom(evt))
-					events.Add(new BlindEventHandler(methodInfo, eventArgType));
+				events.Add(new BlindEventHandler(methodInfo, eventType));
 			}
 
-			if (events.Count > 0)
-				return events.ToArray();
-			else
-				return _emptyHandlers;
+			return events.ToArray();
 		}
 
 		private bool IsInjectable(MemberInfo member)
@@ -137,12 +120,12 @@ namespace BehaviourInject.Internal
 			return _instance.GetInjectionsFor(type);
 		}
 
-		public static BlindEventHandler[] GetEventHandlersFor(Type target, Type evt)
+		public static BlindEventHandler[] GetEventHandlersFor(Type target)
 		{
 			if (_instance == null)
 				_instance = new ReflectionCache();
 
-			return _instance.GetEventHandlers(target, evt);
+			return _instance.GetEventHandlers(target);
 		}
 	}
 }
