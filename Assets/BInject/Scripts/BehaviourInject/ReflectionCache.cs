@@ -20,10 +20,14 @@ namespace BehaviourInject.Internal
 
 		public IMemberInjection[] GetInjectionsFor(Type type)
 		{
-			if (!_behavioirInjections.ContainsKey(type))
-				_behavioirInjections[type] = GenerateInjectionsFor(type);
+			IMemberInjection[] injections;
+			if (!_behavioirInjections.TryGetValue(type, out injections))
+			{
+				injections = GenerateInjectionsFor(type);
+				_behavioirInjections[type] = injections;
+			}
 
-			return _behavioirInjections[type];
+			return injections;
 		}
 
 
@@ -61,10 +65,14 @@ namespace BehaviourInject.Internal
 
 		public BlindEventHandler[] GetEventHandlers(Type target)
 		{
-			if (!_blindEvents.ContainsKey(target))
-				_blindEvents[target] = GenerateEventHandlers(target);
+			BlindEventHandler[] handlers;
+			if (!_blindEvents.TryGetValue(target, out handlers))
+			{
+				handlers = GenerateEventHandlers(target);
+				_blindEvents[target] = handlers;
+			}
 
-			return _blindEvents[target];
+			return handlers;
 		}
 
 
