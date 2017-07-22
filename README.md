@@ -75,7 +75,7 @@ If no argument is passed context will be named "default".
 
 You can not have multiple contexts with the same name at once.
 
-It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method. 
+It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method. **Important! Destroying context also followed by destruction of all child contexts and all gameObjects that has Injectors targeted to this context**.
 
 You may create parent context that allow you to share dependencies between multiple contexts:
 
@@ -233,6 +233,31 @@ public void ReceiveEventInterface(IMyEvent evt)
 ```
 
 This technique allows to dispatch and recieve events without taking care of subsctribing and unsubscribing.
+
+## Commands ##
+
+Commands represent useful pattern of reacting on specified events. You just define type of event and type of command like this:
+```csharp
+_context.RegisterCommand<MyEvent, MyCommand>();
+```
+Whenever MyEvent is appeared in this context object MyCommand is immidiately created through autocomposition and 'Execute' method called.
+You may define command like this
+```csharp
+using BehaviourInject;
+
+public class MyCommand : ICommand
+{
+	public MyCommand(SomeDependency dependency)
+	{ ... }
+
+	[InjectEvent]
+	public void SetEvent(MyEvent evt)
+	{ /* here you may obtain event that triggered this command before execution */ }
+
+	public void Execute()
+	{ /* whatever things to do by this command */ }
+}
+```
 
 ## Watch example scene ##
 
