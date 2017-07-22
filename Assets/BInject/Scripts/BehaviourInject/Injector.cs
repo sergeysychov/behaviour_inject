@@ -28,6 +28,7 @@ using BehaviourInject.Internal;
 
 namespace BehaviourInject
 {
+	[DisallowMultipleComponent]
 	public class Injector : MonoBehaviour
     {
 		[SerializeField]
