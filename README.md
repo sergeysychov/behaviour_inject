@@ -64,6 +64,10 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 
 ![alt text](Doc/execution_order.JPG)
 
+It all works just like this. Right after you've created Context it is added to global ContextRegistry. When Injector awakes it checks ContextRegistry for existing specified Context. Then it lists all current components on it's gameObject and in each component looks for [Inject]-marked fields, properties and setters. For each [Inject] member it resolves corresponding Type object from context and sets this object to member. In the end of that cycle, before all other scripts are awaken, they have their dependencies already in place, ready to operate.
+
+![alt text](Doc/core_concept.png)
+
 ## Multiple contexts ##
 
 If you need multiple contexts at once, you need to add it's name in *BInject/Resources/BInjectSettings* and provide that name in constructor 
