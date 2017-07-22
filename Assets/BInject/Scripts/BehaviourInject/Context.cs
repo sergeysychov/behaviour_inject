@@ -46,7 +46,7 @@ namespace BehaviourInject
 		private IContextParent _parentContext = ParentContextStub.STUB;
 
 		public EventManager EventManager { get; private set; }
-
+		public event Action OnContextDestroyed;
 
         public Context() : this(DEFAULT)
         { }
@@ -76,10 +76,13 @@ namespace BehaviourInject
 			if (_name == parentName)
 				throw new ContextCreationException("Scopes can not be cycled: " + _name + " - " + parentName);
 
+			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
+
 			EventManager.ClearParent();
 
 			Context parentContext = ContextRegistry.GetContext(parentName);
 			_parentContext = parentContext;
+			_parentContext.OnContextDestroyed += HandleParentDestroyed;
 			EventManager.SetParent(_parentContext.EventManager);
 
 			return this;
@@ -127,6 +130,12 @@ namespace BehaviourInject
 				InjectEventTo(command, eventType, evt);
 				command.Execute();
 			}
+		}
+
+
+		private void HandleParentDestroyed()
+		{
+			Destroy();
 		}
 
 
@@ -338,10 +347,14 @@ namespace BehaviourInject
         
         public void Destroy()
         {
+			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
 			EventManager.ClearParent();
 			EventManager.EventInjectors -= OnBlindEventHandler;
 			DisposeDependencies();
 			ContextRegistry.UnregisterContext(_name);
+
+			if (OnContextDestroyed != null)
+				OnContextDestroyed();
         }
 
 

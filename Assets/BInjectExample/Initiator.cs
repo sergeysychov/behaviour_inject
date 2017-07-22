@@ -8,11 +8,13 @@ namespace BehaviourInject.Example
 	//It has to be stated in Script Execution Order as very first
 	public class Initiator : MonoBehaviour
 	{
+		private Context _context;
+
 		private void Awake()
 		{
 			//here we create three different example contexts
 
-			new Context()
+			_context = new Context()
 				//registering new TileStyle object as dependecy to be requested by other
 				//classes and gameobjects
 				.RegisterDependency(new TileStyle(Color.red, "RED"));
@@ -35,6 +37,21 @@ namespace BehaviourInject.Example
 			new Context("blue")
 				.SetParentContext(Context.DEFAULT)
 				.RegisterDependency(new TileStyle(Color.blue, "BLUE"));
+		}
+
+
+		private void OnDestroy()
+		{
+			//You may destroy any context at any time. In this case all child contexts also will be destroyed
+			//And all dependent gameObjects will be destroyed as well
+			_context.Destroy();
+		}
+
+		
+		//try it yourself calling this method via button
+		public void Destroy()
+		{
+			Destroy(gameObject);
 		}
 	}
 }

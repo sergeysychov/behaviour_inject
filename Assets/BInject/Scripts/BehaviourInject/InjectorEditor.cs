@@ -7,9 +7,6 @@ using UnityEditor;
 
 namespace BehaviourInject.Internal
 {
-	public class ChooseContextDrawerAttribute : PropertyAttribute
-	{ }
-
 #if UNITY_EDITOR
 	[CustomEditor(typeof(Injector))]
 	public class ChooseContextProperyDrawer : Editor
