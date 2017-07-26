@@ -285,6 +285,10 @@ namespace BehaviourInject
 
             object result = constructor.Invoke(arguments);
 
+			IMemberInjection[] injections = ReflectionCache.GetInjections(resolvingType);
+			for (int i = 0; i < injections.Length; i++)
+				injections[i].Inject(result, this);
+
             return result;
         }
 
