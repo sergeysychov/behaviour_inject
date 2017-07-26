@@ -44,6 +44,7 @@ namespace BehaviourInject
 		private Dictionary<Type, CommandEntry> _commandsByEvent;
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
+		private bool _isDestroyed;
 
 		public EventManager EventManager { get; private set; }
 		public event Action OnContextDestroyed;
@@ -246,7 +247,9 @@ namespace BehaviourInject
 
 		private bool TryResolve(Type resolvingType, out object dependency, int hierarchyDepthCount)
 		{
-			//UnityEngine.Debug.Log("resolving " + resolvingType.Name + " lvl " + hierarchyDepthCount);
+			if (_isDestroyed)
+				throw new BehaviourInjectException(String.Format("Can not resolve {0}. Context {1} is destroyed.", resolvingType, _name));
+
 			if (hierarchyDepthCount > MAX_HIERARCHY_DEPTH)
 				throw new BehaviourInjectException(String.Format("You have reached maximum hierarchy depth ({0}). Probably recursive dependencies are occured in {1}", MAX_HIERARCHY_DEPTH, resolvingType.FullName));
 			else
@@ -350,15 +353,21 @@ namespace BehaviourInject
 
         
         public void Destroy()
-        {
+		{
+			if (_isDestroyed)
+				return;
+
+			ContextRegistry.UnregisterContext(_name);
+			DisposeDependencies();
+
 			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
 			EventManager.ClearParent();
 			EventManager.EventInjectors -= OnBlindEventHandler;
-			DisposeDependencies();
-			ContextRegistry.UnregisterContext(_name);
 
 			if (OnContextDestroyed != null)
 				OnContextDestroyed();
+
+			_isDestroyed = true;
         }
 
 
