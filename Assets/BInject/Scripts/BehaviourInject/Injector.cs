@@ -28,10 +28,10 @@ using BehaviourInject.Internal;
 
 namespace BehaviourInject
 {
+	[DisallowMultipleComponent]
 	public class Injector : MonoBehaviour
     {
 		[SerializeField]
-		[ChooseContextDrawer]
         private int _contextIndex = 0;
 
         private Context _context;
@@ -41,10 +41,17 @@ namespace BehaviourInject
         void Awake()
         {
             _context = ContextRegistry.GetContext(_contextIndex);
+			_context.OnContextDestroyed += HandleContextDestroyed;
 			_eventManager = _context.EventManager;
 			_eventManager.EventInjectors += InjectBlindEvent;
 
 			FindAndResolveDependencies();
+		}
+
+
+		private void HandleContextDestroyed()
+		{
+			Destroy(gameObject);
 		}
 
 
@@ -100,13 +107,8 @@ namespace BehaviourInject
 
 		void OnDestroy()
 		{
+			_context.OnContextDestroyed -= HandleContextDestroyed;
 			_eventManager.EventInjectors -= InjectBlindEvent;
-		}
-
-
-		public int TargetedContextIndex { 
-			get { return _contextIndex; }
-			set { _contextIndex = value; }
 		}
 	}
 
@@ -115,6 +117,6 @@ namespace BehaviourInject
         public static void ForceInject(this MonoBehaviour behaviour)
         {
             behaviour.SendMessage("InjectToBehaviour", behaviour, SendMessageOptions.DontRequireReceiver);
-        }
+		}
     }
 }

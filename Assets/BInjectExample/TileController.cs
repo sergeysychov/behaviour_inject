@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace BehaviourInject.Example
 {
+	//this is our example of monobehaviour that uses dependency from context
 	public class TileController : MonoBehaviour
 	{
 		[SerializeField]
@@ -12,6 +13,8 @@ namespace BehaviourInject.Example
 		[SerializeField]
 		private Text _title;
 
+		//Injected dependency (TileStyle here) is resolved by Injector on the same gameObject
+		//Injector uses specified Context to resolve dependency
 		[Inject]
 		private TileStyle _style;
 		
@@ -33,6 +36,8 @@ namespace BehaviourInject.Example
 			SetupStyle(_style);
 		}
 
+		//event handler. No need to subscribe or unsubscribe.
+		//it is specefied just by type of event argument, witch is StyleChangedEvent here
 		[InjectEvent]
 		public void OnStyleChangedHandler(StyleChangedEvent @event)
 		{

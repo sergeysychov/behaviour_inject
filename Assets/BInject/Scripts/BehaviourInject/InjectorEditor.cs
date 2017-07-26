@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -8,9 +7,6 @@ using UnityEditor;
 
 namespace BehaviourInject.Internal
 {
-	public class ChooseContextDrawerAttribute : PropertyAttribute
-	{ }
-
 #if UNITY_EDITOR
 	[CustomEditor(typeof(Injector))]
 	public class ChooseContextProperyDrawer : Editor
