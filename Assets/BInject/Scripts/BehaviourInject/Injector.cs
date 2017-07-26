@@ -109,6 +109,8 @@ namespace BehaviourInject
 		{
 			_context.OnContextDestroyed -= HandleContextDestroyed;
 			_eventManager.EventInjectors -= InjectBlindEvent;
+			_eventManager = null;
+			_context = null;
 		}
 	}
 
