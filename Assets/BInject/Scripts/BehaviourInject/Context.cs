@@ -40,8 +40,11 @@ namespace BehaviourInject
 		private List<object> _listedDependencies;
         private Dictionary<Type, IFactoryFacade> _factories;
         private HashSet<Type> _autoCompositionTypes;
+
 		private List<CommandEntry> _commands;
 		private Dictionary<Type, CommandEntry> _commandsByEvent;
+
+
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
 		private bool _isDestroyed;
@@ -172,7 +175,9 @@ namespace BehaviourInject
 
         private void ThrowIfRegistered(Type dependencyType)
         {
-            if (_dependencies.ContainsKey(dependencyType) || _factories.ContainsKey(dependencyType) || _autoCompositionTypes.Contains(dependencyType))
+            if (_dependencies.ContainsKey(dependencyType) || 
+				_factories.ContainsKey(dependencyType) || 
+				_autoCompositionTypes.Contains(dependencyType))
                 throw new ContextCreationException(dependencyType.FullName + " is already registered in this context");
         }
 
@@ -206,6 +211,17 @@ namespace BehaviourInject
             _autoCompositionTypes.Add(dependencyType);
 			return this;
         }
+
+
+		public Context RegisterTypeAs<T, IT>() where T : IT
+		{
+			Type dependencyType = typeof(IT);
+			ThrowIfRegistered(dependencyType);
+			//this is not very good. Requires refactoring
+			T dependency = (T)Resolve(dependencyType);
+			RegisterDependencyAs<T, IT>(dependency);
+			return this;
+		}
 
 
 		public Context RegisterCommand<EventT, CommandT>() where CommandT : ICommand
