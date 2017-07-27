@@ -36,10 +36,8 @@ namespace BehaviourInject
 		public const string DEFAULT = "default";
 		private const int MAX_HIERARCHY_DEPTH = 32;
 
-        private Dictionary<Type, object> _dependencies;
-		private List<object> _listedDependencies;
-        private Dictionary<Type, IFactoryFacade> _factories;
-        private HashSet<Type> _autoCompositionTypes;
+        private Dictionary<Type, IDependency> _dependencies;
+		private List<IDependency> _listedDependencies;
 
 		private List<CommandEntry> _commands;
 		private Dictionary<Type, CommandEntry> _commandsByEvent;
@@ -60,10 +58,9 @@ namespace BehaviourInject
 		{
 			_name = name;
 			ContextRegistry.RegisterContext(name, this);
-			_dependencies = new Dictionary<Type, object>(32);
-			_listedDependencies = new List<object>(32);
-			_factories = new Dictionary<Type, IFactoryFacade>(32);
-			_autoCompositionTypes = new HashSet<Type>();
+			_dependencies = new Dictionary<Type, IDependency>(32);
+			_listedDependencies = new List<IDependency>(32);
+
 			_commands = new List<CommandEntry>(32);
 			_commandsByEvent = new Dictionary<Type, CommandEntry>(32);
 			
@@ -98,8 +95,12 @@ namespace BehaviourInject
 			Type eventType = evnt.GetType();
 			for (int i = 0; i < _listedDependencies.Count; i++)
 			{
-				object dependency = _listedDependencies[i];
-				InjectEventTo(dependency, eventType, evnt);
+				IDependency dependency = _listedDependencies[i];
+				if (dependency.IsSingle)
+				{
+					object target = dependency.Resolve(this, 0);
+					InjectEventTo(target, eventType, evnt);
+				}
 			}
 
 
@@ -117,9 +118,12 @@ namespace BehaviourInject
 		{
 			Type recipientType = recipient.GetType();
 			BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(recipientType);
-			foreach (BlindEventHandler handler in handlers)
+			for (int i = 0; i < handlers.Length; i++)
+			{
+				BlindEventHandler handler = handlers[i];
 				if (handler.IsSuitableForEvent(eventType))
 					handler.Invoke(recipient, evt);
+			}
 		}
 
 
@@ -153,14 +157,14 @@ namespace BehaviourInject
         {
             ThrowIfNull(dependency, "dependency");
             Type dependencyType = typeof(IT);
-            ThrowIfRegistered(dependencyType);
-			InsertDependency(dependencyType, dependency);
+			InsertDependency(dependencyType, new SingleDependency(dependency));
 			return this;
         }
 
 
-		private void InsertDependency(Type type, object dependency)
+		private void InsertDependency(Type type, IDependency dependency)
 		{
+			ThrowIfRegistered(type);
 			_dependencies.Add(type, dependency);
 			_listedDependencies.Add(dependency);
 		}
@@ -175,9 +179,7 @@ namespace BehaviourInject
 
         private void ThrowIfRegistered(Type dependencyType)
         {
-            if (_dependencies.ContainsKey(dependencyType) || 
-				_factories.ContainsKey(dependencyType) || 
-				_autoCompositionTypes.Contains(dependencyType))
+            if (_dependencies.ContainsKey(dependencyType))
                 throw new ContextCreationException(dependencyType.FullName + " is already registered in this context");
         }
 
@@ -186,8 +188,13 @@ namespace BehaviourInject
         {
             ThrowIfNull(factory, "factory");
             Type dependencyType = typeof(T);
-            ThrowIfRegistered(dependencyType);
-            _factories.Add(dependencyType, new DependencyFactoryFacade<T>(factory));
+			Type factoryType = factory.GetType();
+
+			SingleDependency selfDependency = new SingleDependency(factory);
+			InsertDependency(factoryType, selfDependency);
+			FactoryDependency<T> factoryDependency = new FactoryDependency<T>(selfDependency);
+			InsertDependency(dependencyType, factoryDependency);
+
 			return this;
         }
 
@@ -196,10 +203,11 @@ namespace BehaviourInject
         {
             Type factoryType = typeof(FactoryT);
             Type dependencyType = typeof(T);
-            ThrowIfRegistered(dependencyType);
-            RegisterType<FactoryT>();
-            DependencyFactory<T> factory = (DependencyFactory<T>)Resolve(factoryType);
-            _factories.Add(dependencyType, new DependencyFactoryFacade<T>(factory));
+			var selfDependency = new SingleAutocomposeDependency(factoryType);
+			InsertDependency(factoryType, selfDependency);
+			FactoryDependency<T> factoryDependency = new FactoryDependency<T>(selfDependency);
+			InsertDependency(dependencyType, factoryDependency);
+
 			return this;
         }
 
@@ -207,8 +215,7 @@ namespace BehaviourInject
         public Context RegisterType<T>()
         {
             Type dependencyType = typeof(T);
-            ThrowIfRegistered(dependencyType);
-            _autoCompositionTypes.Add(dependencyType);
+			InsertDependency(dependencyType, new SingleAutocomposeDependency(dependencyType));
 			return this;
         }
 
@@ -216,10 +223,9 @@ namespace BehaviourInject
 		public Context RegisterTypeAs<T, IT>() where T : IT
 		{
 			Type dependencyType = typeof(IT);
+			Type concreteType = typeof(T);
 			ThrowIfRegistered(dependencyType);
-			//this is not very good. Requires refactoring
-			T dependency = (T)Resolve(dependencyType);
-			RegisterDependencyAs<T, IT>(dependency);
+			InsertDependency(dependencyType, new SingleAutocomposeDependency(concreteType));
 			return this;
 		}
 
@@ -273,14 +279,7 @@ namespace BehaviourInject
 
 			object parentDependency;
 			if (_dependencies.ContainsKey(resolvingType))
-				dependency = _dependencies[resolvingType];
-			else if (_factories.ContainsKey(resolvingType))
-				dependency = _factories[resolvingType].Create();
-			else if (_autoCompositionTypes.Contains(resolvingType))
-			{
-				dependency = AutocomposeDependency(resolvingType, hierarchyDepthCount);
-				InsertDependency(resolvingType, dependency);
-			}
+				dependency = _dependencies[resolvingType].Resolve(this, hierarchyDepthCount);
 			else if (_parentContext.TryResolve(resolvingType, out parentDependency))
 				dependency = parentDependency;
 			else
@@ -293,7 +292,7 @@ namespace BehaviourInject
 		}
 
 
-		private object AutocomposeDependency(Type resolvingType, int hierarchyDepthCount)
+		public object AutocomposeDependency(Type resolvingType, int hierarchyDepthCount)
         {
             ConstructorInfo constructor = FindAppropriateConstructor(resolvingType);
             ParameterInfo[] parameters = constructor.GetParameters();
@@ -356,13 +355,9 @@ namespace BehaviourInject
 
 		public Context CreateAll()
 		{
-			foreach (Type dependencyType in _autoCompositionTypes)
+			foreach (IDependency dependency in _listedDependencies)
 			{
-				if (!_dependencies.ContainsKey(dependencyType))
-				{
-					object dependency = AutocomposeDependency(dependencyType, 0);
-					InsertDependency(dependencyType, dependency);
-				}
+				dependency.Resolve(this, 0);
 			}
 			return this;
 		}
@@ -393,9 +388,7 @@ namespace BehaviourInject
 			{
 				try
 				{
-					IDisposable disposable = _listedDependencies[i] as IDisposable;
-					if (disposable != null)
-						disposable.Dispose();
+					_listedDependencies[i].Dispose();
 				}
 				catch (Exception e)
 				{

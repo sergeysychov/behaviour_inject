@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BehaviourInject.Example
 {
-	public class TileStyle
+	public class TileStyle : IDisposable
 	{
 		public Color StyleColor { get; private set; }
 		public string Name { get; private set; }
@@ -13,6 +13,11 @@ namespace BehaviourInject.Example
 		{
 			StyleColor = color;
 			Name = name;
+		}
+
+		public void Dispose()
+		{
+			Debug.Log("Disposing style " + Name);
 		}
 	}
 }
