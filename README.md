@@ -14,7 +14,9 @@ This is where Dependency Injection comes to help. You just define core classes a
 
 BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
 
-## How to ##
+* <a href="#howto">How to</a>
+
+<a id="howto"></a>## How to ##
 
 For most cases you will need only three entities:
 
