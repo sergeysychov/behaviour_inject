@@ -77,6 +77,7 @@ It all works just like this. Right after you've created Context it is added to g
 ![alt text](Doc/core_concept.png)
 
 ## <a id="multiple"></a> Multiple contexts
+<a href="#table">Back to contents</a>
 
 If you need multiple contexts at once, you need to add it's name in *BInject/Resources/BInjectSettings* and provide that name in constructor 
 ```csharp 
@@ -98,7 +99,7 @@ Context.Create("my_context")
 After this any dependency that won't be found in "my_context" context will be searched in "base".
 
 ## <a id="interface"></a> Interfaces
-<a href="#table">back</a>
+<a href="#table">Back to contents</a>
 
 You can specify interface injection this way:
 
@@ -120,6 +121,7 @@ public class MyBehaviour : MonoBehaviour
 ```
 
 ## <a id="autocompose"></a> Autocomposition
+<a href="#table">Back to contents</a>
 
 BehaviourInject supports simle object hierarchy construction. Thus you may provide to the context only types of wished objects. And then during injection BehaviourInject will automatically create this objects using constructor dependency injection.
 
@@ -167,6 +169,7 @@ public class Connection
 Autocomposition creates only one single object of type, keeps it and use for every appropriate injection in current context. If you need to create object for each injection use Factories described below.
 
 ## <a id="factories"></a> Factories
+<a href="#table">Back to contents</a>
 
 In case if you needed specific logic of object creation you may use factories. For example if you need to create object at some point at runtime. Or create object each time IoC resolving this type.
 
@@ -216,6 +219,7 @@ public class GameDependentBehaviour : MonoBehaviour
 ```
 
 ## <a id="events"></a> Events
+<a href="#table">Back to contents</a>
 
 Awesome events that dont even need to be subscribed/unsubscribed for. They just arrives via DI system at any classes and behaviours that participated in injection by listener fuction argument type. All you need is just define method with SomeExcempleEvent type argument and mark it with [InjectEvent] attribute.
 
@@ -260,6 +264,7 @@ void Start()
 All you need is just define generic class **EventReceiver** as a **public property** and subscribe handling method.
 
 ## <a id="commands"></a> Commands
+<a href="#table">Back to contents</a>
 
 Commands represent useful pattern of reacting on specified events. You just define type of event and type of command like this:
 ```csharp
