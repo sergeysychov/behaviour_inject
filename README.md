@@ -17,6 +17,9 @@ BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows inje
 * <a href="#howto">How to</a>
 * <a href="#multiple">Multiple contexts</a>
 * <a href="#autocompose">Autocomposition</a>
+* <a href="#factories">Factories</a>
+* <a href="#events">Events</a>
+* <a href="#commands">Commands</a>
 
 ## <a id="howto"></a> How to
 
@@ -161,7 +164,7 @@ public class Connection
 
 Autocomposition creates only one single object of type, keeps it and use for every appropriate injection in current context. If you need to create object for each injection use Factories described below.
 
-## Factories ##
+## <a id="factories"></a> Factories
 
 In case if you needed specific logic of object creation you may use factories. For example if you need to create object at some point at runtime. Or create object each time IoC resolving this type.
 
@@ -210,7 +213,7 @@ public class GameDependentBehaviour : MonoBehaviour
 
 ```
 
-## Events ##
+## <a id="events"></a> Events
 
 Awesome events that dont even need to be subscribed/unsubscribed for. They just arrives via DI system at any classes and behaviours that participated in injection by listener fuction argument type. All you need is just define method with SomeExcempleEvent type argument and mark it with [InjectEvent] attribute.
 
@@ -254,7 +257,7 @@ void Start()
 ```
 All you need is just define generic class **EventReceiver** as a **public property** and subscribe handling method.
 
-## Commands ##
+## <a id="commands"></a> Commands
 
 Commands represent useful pattern of reacting on specified events. You just define type of event and type of command like this:
 ```csharp
