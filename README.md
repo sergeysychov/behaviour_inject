@@ -238,6 +238,18 @@ public void ReceiveEventInterface(IMyEvent evt)
 
 This technique allows to dispatch and recieve events without taking care of subsctribing and unsubscribing.
 
+If for some reason you still need opportunity to subscribe or unsubscribe you can use following method.
+```csharp
+public EventReceiver<MyEvent> Receiver { get; private set; }
+
+void Start()
+{
+	Receiver = new EventReceiver<MyEvent>();
+	Receiver.OnEvent += ReceiveEvent;
+}
+```
+All you need is just define generic class **EventReceiver** as a **public property** and subscribe handling method.
+
 ## Commands ##
 
 Commands represent useful pattern of reacting on specified events. You just define type of event and type of command like this:
