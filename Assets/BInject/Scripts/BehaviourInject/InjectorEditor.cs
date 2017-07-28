@@ -76,7 +76,7 @@ namespace BehaviourInject.Internal
 			_settings = Settings.Load();
 			_contexts = new List<string>(_settings.ContextNames);
 			//_target = (Injector)target;
-			_choosenContext = serializedObject.FindProperty("_context");
+			_choosenContext = serializedObject.FindProperty("_contextIndex");
 		}
 
 

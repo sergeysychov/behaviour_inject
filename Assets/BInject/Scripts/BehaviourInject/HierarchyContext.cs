@@ -11,11 +11,33 @@ namespace BehaviourInject
 	{
 		[SerializeField]
 		[HideInInspector]
-		private int _context;
+		private int _contextIndex;
+
+		private Context _context;
 
 		public virtual Context GetContext()
 		{
-			return ContextRegistry.GetContext(_context);
+			if (_context == null)
+			{
+				_context = ContextRegistry.GetContext(_contextIndex);
+				_context.OnContextDestroyed += OnContextDestroy;
+			}
+
+			return _context;
+		}
+
+
+		private void OnContextDestroy()
+		{
+			_context.OnContextDestroyed -= OnContextDestroy;
+			Destroy(gameObject);
+		}
+
+
+		private void OnDestroy()
+		{
+			if(_context != null)
+				_context.OnContextDestroyed -= OnContextDestroy;
 		}
 	}
 }

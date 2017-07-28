@@ -1,0 +1,60 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace BehaviourInject.Test
+{
+	public class TestRecipient : MonoBehaviour
+	{
+		public string _contextKeyword;
+
+		public IEvent evt1;
+		public TestEvent evt2;
+
+		[Inject]
+		private IDependency _idependency;
+		[Inject]
+		private PrecomposeDependency _fieldInjected;
+		private AutocomposeDependency _methodInjected;
+		[Inject]
+		public AutocomposeDependency PropertyInjected { get; private set; }
+
+		public EventReceiver<IEvent> Receiver { get; private set; }
+
+		[Inject]
+		public void Init(AutocomposeDependency dep)
+		{
+			_methodInjected = dep;
+		}
+
+		private void Awake()
+		{
+			Receiver = new EventReceiver<IEvent>();
+			Receiver.OnEvent += Handle;
+		}
+
+		void Start()
+		{
+			string keyword = _fieldInjected.Keyword;
+			Assert.NotNull(_idependency, keyword + " parent and interface");
+			Assert.NotNull(_fieldInjected, keyword + " field inject");
+			Assert.NotNull(_methodInjected, keyword + " method inject");
+			Assert.NotNull(PropertyInjected, keyword + " property inject");
+			Assert.Equals(_contextKeyword, _fieldInjected.Keyword, keyword + " compare contexts");
+			_methodInjected.Run();
+			_idependency.Run();
+		}
+
+
+		public void Handle(IEvent evt)
+		{
+			evt1 = evt;
+		}
+
+		[InjectEvent]
+		public void Handle(TestEvent evt)
+		{
+			evt2 = evt;
+		}
+	}
+}
