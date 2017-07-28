@@ -107,9 +107,9 @@ You can specify interface injection this way:
 public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
-        MockReader model = new MockReader(); //implements IReader
-        Context context = Context.Create();
-        context2.RegisterDependencyAs<MockReader, IReader>(mockReader);
+        var reader = new MockReader(); //implements IReader
+        Context.Create()
+		.RegisterDependencyAs<MockReader, IReader>(reader);
     }
 }
 
@@ -133,7 +133,8 @@ public class InitiatorBehavour : MonoBehaviour
         Context context1 = Context.Create()
 		.RegisterDependency(settings)
 		.RegisterType<Core>()
-		.RegisterType<Connection>();
+		.RegisterType<Connection>()
+		.RegisterTypeAs<MockReader, IReader>();
     }
 }
 
