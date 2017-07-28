@@ -95,8 +95,8 @@ namespace BehaviourInject
 					continue;
 
 				Type componentType = component.GetType();
-				BlindEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType);
-				foreach (BlindEventHandler handler in handlers)
+				IEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType);
+				foreach (IEventHandler handler in handlers)
 				{
 					if (handler.IsSuitableForEvent(eventType))
 						handler.Invoke(component, blindEvent);

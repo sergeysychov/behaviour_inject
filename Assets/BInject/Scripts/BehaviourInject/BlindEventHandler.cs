@@ -3,29 +3,62 @@ using System.Reflection;
 
 namespace BehaviourInject.Internal
 {
-	public class BlindEventHandler
+	public interface IEventHandler
 	{
-		public MethodInfo Method { get; private set; }
-		public Type EventType { get; private set; }
+		bool IsSuitableForEvent(Type dispatchedType);
+		void Invoke(object target, object evnt);
+	}
+
+	public class MethodEventHandler : IEventHandler
+	{
+		private MethodInfo _method;
+		private Type _eventType;
 		private object[] _invocationParameters = new object[1];
 
-		public BlindEventHandler(MethodInfo method, Type eventType)
+		public MethodEventHandler(MethodInfo method, Type eventType)
 		{
-			Method = method;
-			EventType = eventType;
+			_method = method;
+			_eventType = eventType;
 		}
 
 
 		public bool IsSuitableForEvent(Type dispatchedType)
 		{
-			return EventType.IsAssignableFrom(dispatchedType);
+			return _eventType.IsAssignableFrom(dispatchedType);
 		}
 
 
 		public void Invoke(object target, object evnt)
 		{
 			_invocationParameters[0] = evnt;
-			Method.Invoke(target, _invocationParameters);
+			_method.Invoke(target, _invocationParameters);
+		}
+	}
+
+
+	public class ReceiverEventHandler : IEventHandler
+	{
+		private PropertyInfo _receiverMember;
+		private Type _eventType;
+		private object[] _invocationParameters = new object[1];
+
+		public ReceiverEventHandler(PropertyInfo receiverMember, Type eventType)
+		{
+			_receiverMember = receiverMember;
+			_eventType = eventType;
+		}
+
+		public bool IsSuitableForEvent(Type dispatchedType)
+		{
+			return _eventType.IsAssignableFrom(dispatchedType);
+		}
+
+		public void Invoke(object target, object evnt)
+		{
+			object receiver = _receiverMember.GetValue(target, null);
+			if (receiver == null)
+				return;
+			((IReceiver)receiver).Receive(evnt);
 		}
 	}
 }

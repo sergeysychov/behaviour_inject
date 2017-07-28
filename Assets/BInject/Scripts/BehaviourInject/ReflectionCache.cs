@@ -9,12 +9,12 @@ namespace BehaviourInject.Internal
 		private static ReflectionCache _instance;
 
 		private Dictionary<Type, IMemberInjection[]> _behavioirInjections;
-		private Dictionary<Type, BlindEventHandler[]> _blindEvents;
+		private Dictionary<Type, IEventHandler[]> _blindEvents;
 
 		public ReflectionCache()
 		{
 			_behavioirInjections = new Dictionary<Type, IMemberInjection[]>();
-			_blindEvents = new Dictionary<Type, BlindEventHandler[]>();
+			_blindEvents = new Dictionary<Type, IEventHandler[]>();
 		}
 
 
@@ -63,9 +63,9 @@ namespace BehaviourInject.Internal
 		}
 
 
-		public BlindEventHandler[] GetEventHandlers(Type target)
+		public IEventHandler[] GetEventHandlers(Type target)
 		{
-			BlindEventHandler[] handlers;
+			IEventHandler[] handlers;
 			if (!_blindEvents.TryGetValue(target, out handlers))
 			{
 				handlers = GenerateEventHandlers(target);
@@ -76,10 +76,10 @@ namespace BehaviourInject.Internal
 		}
 
 
-		private BlindEventHandler[] GenerateEventHandlers(Type target)
+		private IEventHandler[] GenerateEventHandlers(Type target)
 		{
 			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-			List<BlindEventHandler> events = new List<BlindEventHandler>();
+			List<IEventHandler> events = new List<IEventHandler>();
 			MethodInfo[] methods = target.GetMethods(flags);
 
 			foreach (MethodInfo methodInfo in methods)
@@ -96,7 +96,24 @@ namespace BehaviourInject.Internal
 				if(eventType.IsValueType)
 					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
 
-				events.Add(new BlindEventHandler(methodInfo, eventType));
+				events.Add(new MethodEventHandler(methodInfo, eventType));
+			}
+
+			PropertyInfo[] properties = target.GetProperties(flags);
+			Type receiverGeneric = typeof(EventReceiver<>);
+
+			foreach (PropertyInfo propertyInfo in properties)
+			{
+				Type propertyType = propertyInfo.PropertyType;
+
+				if (!propertyType.IsGenericType || propertyType.GetGenericTypeDefinition() != receiverGeneric)
+					continue;
+
+				Type eventType = propertyType.GetGenericArguments()[0];
+				if(eventType.IsValueType)
+					throw new BehaviourInjectException(target.FullName + "." + propertyInfo.Name + ": Injected event can not be a value type!");
+
+				events.Add(new ReceiverEventHandler(propertyInfo, eventType));
 			}
 
 			return events.ToArray();
@@ -128,7 +145,7 @@ namespace BehaviourInject.Internal
 			return _instance.GetInjectionsFor(type);
 		}
 
-		public static BlindEventHandler[] GetEventHandlersFor(Type target)
+		public static IEventHandler[] GetEventHandlersFor(Type target)
 		{
 			if (_instance == null)
 				_instance = new ReflectionCache();

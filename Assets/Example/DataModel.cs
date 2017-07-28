@@ -14,9 +14,9 @@ public class DataModel
         Data = data;
     }
 
-	[InjectEvent]
+	/*[InjectEvent]
 	public void EventHandler(IMyEvent evt)
 	{
 		Debug.Log("Event in model " + evt.Num());
-	}
+	}*/
 }

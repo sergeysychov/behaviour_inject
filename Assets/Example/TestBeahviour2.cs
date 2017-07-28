@@ -6,11 +6,16 @@ public class TestBeahviour2 : MonoBehaviour {
 
 	public DataModel _model;
 	public IReader _reader;
+
+	public EventReceiver<MyEvent> eventReceiver { get; private set; }
 	
 	void Start () {
         Debug.Log(gameObject.name + " TB2");
         Debug.Log(_model.Data);
         Debug.Log(_reader.Read());
+		eventReceiver = new EventReceiver<MyEvent>();
+
+		eventReceiver.OnEvent += HandleEvent;
 	}
 
 
@@ -21,10 +26,10 @@ public class TestBeahviour2 : MonoBehaviour {
 		_reader = reader;
 	}
 	
-	[InjectEvent]
+
 	public void HandleEvent(MyEvent evnt)
 	{
-		Debug.Log("catch event " + evnt._index);
+		Debug.Log("/// catch event " + evnt._index);
 	}
 
 	[InjectEvent]
