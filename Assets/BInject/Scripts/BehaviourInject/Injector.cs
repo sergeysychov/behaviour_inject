@@ -33,6 +33,8 @@ namespace BehaviourInject
     {
 		[SerializeField]
         private int _contextIndex = 0;
+		[SerializeField]
+        private bool _useHierarchy = false;
 
         private Context _context;
 		private EventManager _eventManager;
@@ -40,12 +42,36 @@ namespace BehaviourInject
 
         void Awake()
         {
-            _context = ContextRegistry.GetContext(_contextIndex);
+			if (_useHierarchy)
+			{
+				_context = GetContextFromHierarchy();
+			}
+			else
+			{
+				_context = ContextRegistry.GetContext(_contextIndex);
+			}
+
 			_context.OnContextDestroyed += HandleContextDestroyed;
 			_eventManager = _context.EventManager;
 			_eventManager.EventInjectors += InjectBlindEvent;
 
 			FindAndResolveDependencies();
+		}
+
+
+		private Context GetContextFromHierarchy()
+		{
+			Transform ancestor = this.gameObject.transform.parent;
+
+			while(ancestor != null)
+			{
+				HierarchyContext[] components = ancestor.GetComponents<HierarchyContext>();
+				if (components.Length > 0)
+					return components[0].GetContext();
+				ancestor = ancestor.parent;
+			}
+
+			throw new BehaviourInjectException("No ancestor context found");
 		}
 
 

@@ -46,18 +46,35 @@ namespace BehaviourInject
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
 		private bool _isDestroyed;
+		private bool _isGlobal;
 
 		public EventManager EventManager { get; private set; }
 		public event Action OnContextDestroyed;
 
-        public Context() : this(DEFAULT)
-        { }
+
+		public static Context Create()
+		{
+			return Create(Context.DEFAULT);
+		}
+
+		public static Context Create(string name)
+		{
+			Context context = new Context(name, true);
+			ContextRegistry.RegisterContext(name, context);
+			return context;
+		}
+
+		public static Context CreateLocal()
+		{
+			return new Context("___local_context", false);
+		}
 
 
-        public Context(string name)
+		//[Obsolete("Use Context.Create() instead")]
+        private Context(string name, bool isGlobal = true)
 		{
 			_name = name;
-			ContextRegistry.RegisterContext(name, this);
+			_isGlobal = isGlobal;
 			_dependencies = new Dictionary<Type, IDependency>(32);
 			_listedDependencies = new List<IDependency>(32);
 
@@ -367,8 +384,9 @@ namespace BehaviourInject
 		{
 			if (_isDestroyed)
 				return;
+			if(_isGlobal)
+				ContextRegistry.UnregisterContext(_name);
 
-			ContextRegistry.UnregisterContext(_name);
 			DisposeDependencies();
 
 			_parentContext.OnContextDestroyed -= HandleParentDestroyed;

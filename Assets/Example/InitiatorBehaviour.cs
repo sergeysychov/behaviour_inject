@@ -16,10 +16,10 @@ public class InitiatorBehaviour : MonoBehaviour {
         DataModel dataModel = new DataModel("dataOne");
         Network networker = new Network();
 
-		new Context(BASE)
+		Context.Create(BASE)
 			.RegisterDependency(dataModel);
 
-		_context1 = new Context()
+		_context1 = Context.Create()
 			.SetParentContext(BASE)
 			.RegisterDependency(dataModel)
 			.RegisterDependencyAs<Network, IReader>(networker);
@@ -27,7 +27,7 @@ public class InitiatorBehaviour : MonoBehaviour {
         DataModel mockData = new DataModel("this is mock data");
         MockReader mockReader = new MockReader();
 
-        _context2 = new Context(TEST)
+		_context2 = Context.Create(TEST)
 			.SetParentContext(BASE)
 			.RegisterDependencyAs<MockReader, IReader>(mockReader);
 	}

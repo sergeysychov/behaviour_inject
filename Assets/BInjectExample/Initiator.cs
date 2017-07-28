@@ -14,13 +14,13 @@ namespace BehaviourInject.Example
 		{
 			//here we create three different example contexts
 
-			_context = new Context()
+			_context = Context.Create()
 				//registering new TileStyle object as dependecy to be requested by other
 				//classes and gameobjects
 				.RegisterDependency(new TileStyle(Color.red, "RED"));
 
 			//other context might be choosen by gameobject Injector
-			new Context("green")
+			Context.Create("green")
 
 				//context inheritence allow to request dependencies from parent
 				//if they are not found in current context.
@@ -34,7 +34,7 @@ namespace BehaviourInject.Example
 				//Object of command type is being created and executed on each event occurance
 				.RegisterCommand<StyleChangedEvent, StyleCommand>();
 
-			new Context("blue")
+			Context.Create("blue")
 				.SetParentContext(Context.DEFAULT)
 				.RegisterDependency(new TileStyle(Color.blue, "BLUE"));
 		}

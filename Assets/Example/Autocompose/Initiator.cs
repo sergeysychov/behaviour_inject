@@ -6,7 +6,7 @@ public class Initiator : MonoBehaviour {
     
 	void Awake () {
         Settings settings = new Settings("127.9.1.1");
-        Context context1 = new Context()
+        Context context1 = Context.Create()
 			.RegisterDependency(settings)
 			.RegisterType<Core>()
 			.RegisterType<Connection>()

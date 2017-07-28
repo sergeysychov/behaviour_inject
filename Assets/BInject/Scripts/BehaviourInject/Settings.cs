@@ -14,6 +14,8 @@ namespace BehaviourInject.Internal
 		[SerializeField]
 		public string[] ContextNames = { };
 
+		private int[] _optiopnsIndexes;
+
 		public static string[] GetContextNames()
 		{
 			if(_instance == null)
@@ -28,6 +30,30 @@ namespace BehaviourInject.Internal
 		{
 			Settings settings = Resources.Load<Settings>(SETTINGS_PATH);
 			return settings;
+		}
+
+
+		public int FindIndexOf(string contextName)
+		{
+			string[] options = ContextNames;
+			for (int i = 0; i < options.Length; i++)
+				if (options[i] == contextName)
+					return i;
+			return -1;
+		}
+
+
+		public int[] GetOptionValues()
+		{
+			string[] options = ContextNames;
+			int length = options.Length;
+			if (_optiopnsIndexes == null || length != _optiopnsIndexes.Length)
+			{
+				_optiopnsIndexes = new int[length];
+				for (int i = 0; i < length; i++)
+					_optiopnsIndexes[i] = i;
+			}
+			return _optiopnsIndexes;
 		}
 	}
 }
