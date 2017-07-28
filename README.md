@@ -29,7 +29,7 @@ Use any of your behaviours to settle following code. Make shure that it awakes B
 ```csharp
 void Awake(){
     MyDataModel model = new MyDataModel(); //Any of your dependencies
-    Context context = new Context();
+    Context context = Context.Create();
     context.RegisterDependency(model);
 }
 ```
@@ -72,7 +72,7 @@ It all works just like this. Right after you've created Context it is added to g
 
 If you need multiple contexts at once, you need to add it's name in *BInject/Resources/BInjectSettings* and provide that name in constructor 
 ```csharp 
-new Context("my_context"); 
+Context.Create("my_context"); 
 ```
 Then you should specify Injector to use this context by setting сorresponding context in inspector.
 If no argument is passed context will be named "default".
@@ -84,7 +84,7 @@ It is also possible to destroy context (if it's bound to scene for example) simp
 You may create parent context that allow you to share dependencies between multiple contexts:
 
 ```csharp
-new Context("my_context")
+Context.Create("my_context")
 	.SetParentContext("base");
 ```
 After this any dependency that won't be found in "my_context" context will be searched in "base".
@@ -98,7 +98,7 @@ public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
         MockReader model = new MockReader(); //implements IReader
-        Context context = new Context();
+        Context context = Context.Create();
         context2.RegisterDependencyAs<MockReader, IReader>(mockReader);
     }
 }
@@ -119,7 +119,7 @@ public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
         Settings settings = new Settings("127.9.1.1");
-        Context context1 = new Context()
+        Context context1 = Context.Create()
 		.RegisterDependency(settings)
 		.RegisterType<Core>()
 		.RegisterType<Connection>();
@@ -167,7 +167,7 @@ Factories also can be eather defined directly in code, or created by autocomposi
 public class InitiatorBehavour : MonoBehaviour
 {
     void Awake(){
-        Context context1 = new Context();
+        Context context1 = Context.Create();
         context1.RegisterType<Connection>();
         context1.RegisterFactory<Game, GameFactory>();
         //or
