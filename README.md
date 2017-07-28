@@ -13,9 +13,10 @@ Average project eventually meets difficulties with myriads of links and connecti
 This is where Dependency Injection comes to help. You just define core classes and interfaces for you logic, mark required links with [Inject] and then DI does all the magic linking things to each other (with reflection). No headache with passing tons of instances through composition tree, uncontrollable dirty singletons or creating all-mighty God-objects that owns and controls everything. Classes should know only things that they really need. You are free to separate, encapsulate, create interfaces, use polymorphism and have full conrol over links in your logic in simple and elegant way.
 
 BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
-
+<a id="table"></a>
 * <a href="#howto">How to</a>
 * <a href="#multiple">Multiple contexts</a>
+* <a href="#interface">Interfaces</a>
 * <a href="#autocompose">Autocomposition</a>
 * <a href="#factories">Factories</a>
 * <a href="#events">Events</a>
@@ -96,7 +97,8 @@ Context.Create("my_context")
 ```
 After this any dependency that won't be found in "my_context" context will be searched in "base".
 
-## Interfaces ##
+## <a id="interface"></a> Interfaces
+<a href="#table">back</a>
 
 You can specify interface injection this way:
 
