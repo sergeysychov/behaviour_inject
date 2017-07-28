@@ -15,8 +15,10 @@ This is where Dependency Injection comes to help. You just define core classes a
 BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
 
 * <a href="#howto">How to</a>
+* <a href="#multiple">Multiple contexts</a>
+* <a href="#autocompose">Autocomposition</a>
 
-<a id="howto"></a>## How to ##
+## <a id="howto"></a> How to
 
 For most cases you will need only three entities:
 
@@ -70,7 +72,7 @@ It all works just like this. Right after you've created Context it is added to g
 
 ![alt text](Doc/core_concept.png)
 
-## Multiple contexts ##
+## <a id="multiple"></a> Multiple contexts
 
 If you need multiple contexts at once, you need to add it's name in *BInject/Resources/BInjectSettings* and provide that name in constructor 
 ```csharp 
@@ -112,7 +114,7 @@ public class MyBehaviour : MonoBehaviour
 }
 ```
 
-## Autocomposition ##
+## <a id="autocompose"></a> Autocomposition
 
 BehaviourInject supports simle object hierarchy construction. Thus you may provide to the context only types of wished objects. And then during injection BehaviourInject will automatically create this objects using constructor dependency injection.
 
