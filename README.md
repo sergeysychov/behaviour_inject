@@ -21,6 +21,7 @@ BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows inje
 * <a href="#factories">Factories</a>
 * <a href="#events">Events</a>
 * <a href="#commands">Commands</a>
+* <a href="#go-context">GameObject context</a>
 
 ## <a id="howto"></a> How to
 
