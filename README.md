@@ -89,8 +89,6 @@ If no argument is passed context will be named "default".
 
 You can not have multiple contexts with the same name at once.
 
-It is also possible to destroy context (if it's bound to scene for example) simply by calling context.Destroy() method. **Important! Destroying context also followed by destruction of all child contexts and all gameObjects that has Injectors targeted to this context**.
-
 You may create parent context that allow you to share dependencies between multiple contexts:
 
 ```csharp
@@ -98,6 +96,8 @@ Context.Create("my_context")
 	.SetParentContext("base");
 ```
 After this any dependency that won't be found in "my_context" context will be searched in "base".
+
+It is also possible to destroy context (if it's logically bound to scene for example) simply by calling context.Destroy() method. **Important! Destroying context also followed by destruction of all child contexts and all gameObjects that has Injectors targeted to this context**.
 
 ## <a id="interface"></a> Interfaces
 <a href="#table">Back to contents</a>
