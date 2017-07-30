@@ -337,3 +337,4 @@ There are example scenes and behaviours for simple injections, autocompositions 
 ## Benchmark ##
 
 On intel i5-4570 3.2Ghz and Unity 5.5 it takes about 4 ms to make 1000 injections.
+Requires Unity3d 5.0 or higher
