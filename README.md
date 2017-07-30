@@ -21,6 +21,7 @@ BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows inje
 * <a href="#factories">Factories</a>
 * <a href="#events">Events</a>
 * <a href="#commands">Commands</a>
+* <a href="#go-context">GameObject context</a>
 
 ## <a id="howto"></a> How to
 
@@ -289,6 +290,45 @@ public class MyCommand : ICommand
 	{ /* whatever things to do by this command */ }
 }
 ```
+
+## <a id="go-context"></a> GameObject context
+<a href="#table">Back to contents</a>
+
+Sometimes it might be suitable to have separate set of dependencies for some part of your scene hierarchy without creating global context. So here's the way of doing it.
+There is component called **HierarchyContext**. If you place it on some gameObject all his children recursively will have access to this context. Basically HierarchyContext provides link to one of known global contexts, but you can **override** it this way
+
+```csharp
+using BehaviourInject;
+
+public class CustomContext : HierarchyContext
+{
+	private Context _context;
+
+	public override Context GetContext()
+	{
+		if (_context == null)
+		{
+			_context = Context.CreateLocal()
+				.SetParentContext("test")
+				.RegisterDependency(new PrecomposeDependency("local"));
+		}
+		return _context;
+	}
+	
+	
+	void OnDestroy()
+	{
+		_context.Destroy();
+	}
+}
+```
+
+Now if any Injector in it's children has toggled "Use hierarchy" it will search for **HierarchyContext** in it's parents upwards and resolve it's context.
+
+![alt text](Doc/hierarchy_context.png)
+
+Just remember that in case of manual context creation you are also responsible for it's destruction, so it's a good practice to destroy contexts in OnDestroy().
+
 
 ## Watch example scene ##
 
