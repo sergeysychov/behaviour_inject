@@ -124,7 +124,7 @@ public class MyBehaviour : MonoBehaviour
 ## <a id="autocompose"></a> Autocomposition
 <a href="#table">Back to contents</a>
 
-BehaviourInject supports simle object hierarchy construction. Thus you may provide to the context only types of wished objects. And then during injection BehaviourInject will automatically create this objects using constructor dependency injection.
+BehaviourInject supports simple object hierarchy construction. Thus you may provide to the context only types of wished objects. And then during injection BehaviourInject will automatically create this objects using constructor dependency injection.
 
 ```csharp
 public class InitiatorBehavour : MonoBehaviour
