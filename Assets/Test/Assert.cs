@@ -34,6 +34,20 @@ namespace BehaviourInject.Test
 		{
 			True(val.Equals(val2), message);
 		}
+		public static void NotEquals(object val, object val2, string message = "")
+		{
+			True(!val.Equals(val2), message);
+		}
+
+		public static void NotReached(string message)
+		{
+			LogRed("Fail " + message);
+		}
+
+		public static void Exception(Exception e, string message = "")
+		{
+			LogGreen("Seccess got exeption " + e.GetType() + "; " + message);
+		}
 
 
 		private static void LogGreen(string msg)

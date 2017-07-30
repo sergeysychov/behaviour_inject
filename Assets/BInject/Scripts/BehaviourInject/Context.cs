@@ -45,9 +45,9 @@ namespace BehaviourInject
 
         private string _name;
 		private IContextParent _parentContext = ParentContextStub.STUB;
-		private bool _isDestroyed;
 		private bool _isGlobal;
 
+		public bool IsDestroyed { get; private set; }
 		public EventManager EventManager { get; private set; }
 		public event Action OnContextDestroyed;
 
@@ -286,7 +286,7 @@ namespace BehaviourInject
 
 		private bool TryResolve(Type resolvingType, out object dependency, int hierarchyDepthCount)
 		{
-			if (_isDestroyed)
+			if (IsDestroyed)
 				throw new BehaviourInjectException(String.Format("Can not resolve {0}. Context {1} is destroyed.", resolvingType, _name));
 
 			if (hierarchyDepthCount > MAX_HIERARCHY_DEPTH)
@@ -382,7 +382,7 @@ namespace BehaviourInject
         
         public void Destroy()
 		{
-			if (_isDestroyed)
+			if (IsDestroyed)
 				return;
 			if(_isGlobal)
 				ContextRegistry.UnregisterContext(_name);
@@ -396,7 +396,7 @@ namespace BehaviourInject
 			if (OnContextDestroyed != null)
 				OnContextDestroyed();
 
-			_isDestroyed = true;
+			IsDestroyed = true;
         }
 
 

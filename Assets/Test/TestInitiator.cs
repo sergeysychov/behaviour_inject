@@ -7,6 +7,8 @@ namespace BehaviourInject.Test
 {
 	public class TestInitiator : MonoBehaviour
 	{
+		public GameObject _testRunner;
+
 		private Context _contextTest;
 		private Context _contextBase;
 		private PrecomposeDependency _precomposed;
@@ -39,6 +41,8 @@ namespace BehaviourInject.Test
 			_contextTest.Destroy();
 			_contextBase.Destroy();
 			Assert.True(_precomposed.Disposed, "dispose");
+
+			_testRunner.SetActive(true);
 		}
 	}
 
@@ -100,7 +104,7 @@ namespace BehaviourInject.Test
 			Assert.NotNull(_dep, "autocompose");
 		}
 	}
-
+	
 
 	public class IEvent
 	{ }

@@ -7,6 +7,7 @@ using BehaviourInject.Internal;
 
 namespace BehaviourInject
 {
+	[DisallowMultipleComponent]
 	public class HierarchyContext : MonoBehaviour
 	{
 		[SerializeField]
