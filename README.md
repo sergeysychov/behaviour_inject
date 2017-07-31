@@ -295,7 +295,7 @@ public class MyCommand : ICommand
 <a href="#table">Back to contents</a>
 
 Sometimes it might be suitable to have separate set of dependencies for some part of your scene hierarchy without creating global context. So here's the way of doing it.
-There is component called **HierarchyContext**. If you place it on some gameObject all his children recursively will have access to this context. Basically HierarchyContext provides link to one of known global contexts, but you can **override** it this way
+There is component called **HierarchyContext**. If you place it on some gameObject all his children recursively will have access to this context. Basically HierarchyContext provides link to one of known global contexts, but you can **override** it.
 
 ```csharp
 using BehaviourInject;
@@ -309,8 +309,8 @@ public class CustomContext : HierarchyContext
 		if (_context == null)
 		{
 			_context = Context.CreateLocal()
-				.SetParentContext("test")
-				.RegisterDependency(new PrecomposeDependency("local"));
+				.SetParentContext("whatever_context")
+				...;
 		}
 		return _context;
 	}
@@ -322,7 +322,7 @@ public class CustomContext : HierarchyContext
 	}
 }
 ```
-
+It is important to call **CreateLocal** to create context that will be correspond ONLY to this gameObject. Otherwise it will create global "default" context and probably throw an exception.
 Now if any Injector in it's children has toggled "Use hierarchy" it will search for **HierarchyContext** in it's parents upwards and resolve it's context.
 
 ![alt text](Doc/hierarchy_context.png)
