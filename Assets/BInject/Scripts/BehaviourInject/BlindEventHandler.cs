@@ -40,7 +40,6 @@ namespace BehaviourInject.Internal
 	{
 		private PropertyInfo _receiverMember;
 		private Type _eventType;
-		private object[] _invocationParameters = new object[1];
 
 		public ReceiverEventHandler(PropertyInfo receiverMember, Type eventType)
 		{

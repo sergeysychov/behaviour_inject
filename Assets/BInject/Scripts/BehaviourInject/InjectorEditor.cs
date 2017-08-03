@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using UnityEditor;
 #endif
 
@@ -12,10 +9,7 @@ namespace BehaviourInject.Internal
 	public class ChooseContextProperyDrawer : Editor
 	{
 		private Settings _settings;
-		//private Injector _target;
 		private bool _isDropped;
-		private int[] _optiopnsIndexes = null;
-		private List<string> _contexts;
 
 		private SerializedProperty _choosenContext;
 		private SerializedProperty _useHierarchy;
@@ -23,8 +17,6 @@ namespace BehaviourInject.Internal
 		void OnEnable()
 		{
 			_settings = Settings.Load();
-			_contexts = new List<string>(_settings.ContextNames);
-			//_target = (Injector)target;
 			_choosenContext = serializedObject.FindProperty("_contextIndex"); ;
 			_useHierarchy = serializedObject.FindProperty("_useHierarchy"); ;
 		}
@@ -64,18 +56,13 @@ namespace BehaviourInject.Internal
 	public class HierarchyContextProperyDrawer : Editor
 	{
 		private Settings _settings;
-		//private Injector _target;
 		private bool _isDropped;
-		private int[] _optiopnsIndexes = null;
-		private List<string> _contexts;
 
 		private SerializedProperty _choosenContext;
 
 		void OnEnable()
 		{
 			_settings = Settings.Load();
-			_contexts = new List<string>(_settings.ContextNames);
-			//_target = (Injector)target;
 			_choosenContext = serializedObject.FindProperty("_contextIndex");
 		}
 

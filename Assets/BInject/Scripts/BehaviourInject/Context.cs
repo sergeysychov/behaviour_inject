@@ -151,7 +151,6 @@ namespace BehaviourInject
 			{
 				Type commandType = commands[i];
 				ICommand command = (ICommand)AutocomposeDependency(commandType, 0);
-				IEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(commandType);
 				InjectEventTo(command, eventType, evt);
 				command.Execute();
 			}
