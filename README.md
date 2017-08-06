@@ -253,7 +253,7 @@ public void ReceiveEvent(MyEvent evt)
 public void ReceiveEventInterface(IMyEvent evt)
 { ... }
 ```
-Setting up **Inherit** property to true allows event handler to receive events, that implements or extends specified event Type.
+Setting up **Inherit** property to true allows event handler to receive events that implements or extends specified event Type.
 This technique allows to dispatch and recieve events without taking care of subsctribing and unsubscribing.
 
 If for some reason you still need opportunity to subscribe or unsubscribe you can use following method.
