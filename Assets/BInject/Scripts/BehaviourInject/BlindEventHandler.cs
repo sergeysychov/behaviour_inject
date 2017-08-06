@@ -9,24 +9,40 @@ namespace BehaviourInject.Internal
 		void Invoke(object target, object evnt);
 	}
 
-	public class MethodEventHandler : IEventHandler
-	{
-		private MethodInfo _method;
-		private Type _eventType;
-		private object[] _invocationParameters = new object[1];
 
-		public MethodEventHandler(MethodInfo method, Type eventType)
+	public abstract class AbstractEventHandler
+	{
+		private Type _eventType;
+		private bool _inherit;
+
+		public AbstractEventHandler(MemberInfo member, Type eventType)
 		{
-			_method = method;
 			_eventType = eventType;
+
+			InjectEventAttribute attribute;
+			if (AttributeUtils.TryGetAttribute(member, out attribute))
+				_inherit = attribute.Inherit;
 		}
 
 
 		public bool IsSuitableForEvent(Type dispatchedType)
 		{
-			return _eventType.IsAssignableFrom(dispatchedType);
+			if (_inherit)
+				return _eventType.IsAssignableFrom(dispatchedType);
+			else
+				return _eventType == dispatchedType;
 		}
+	}
 
+	public class MethodEventHandler : AbstractEventHandler, IEventHandler
+	{
+		private MethodInfo _method;
+		private object[] _invocationParameters = new object[1];
+
+		public MethodEventHandler(MethodInfo method, Type eventType) : base(method, eventType)
+		{
+			_method = method;
+		}
 
 		public void Invoke(object target, object evnt)
 		{
@@ -36,28 +52,31 @@ namespace BehaviourInject.Internal
 	}
 
 
-	public class ReceiverEventHandler : IEventHandler
+	public class DelegateEventHandler : AbstractEventHandler, IEventHandler
 	{
-		private PropertyInfo _receiverMember;
-		private Type _eventType;
+		private FieldInfo _delegateField;
+		private object[] _invocationParameters = new object[1];
 
-		public ReceiverEventHandler(PropertyInfo receiverMember, Type eventType)
+		public DelegateEventHandler(FieldInfo delegateField, Type eventType)
+			: base(delegateField, eventType)
 		{
-			_receiverMember = receiverMember;
-			_eventType = eventType;
-		}
-
-		public bool IsSuitableForEvent(Type dispatchedType)
-		{
-			return _eventType.IsAssignableFrom(dispatchedType);
+			_delegateField = delegateField;
 		}
 
 		public void Invoke(object target, object evnt)
 		{
-			object receiver = _receiverMember.GetValue(target, null);
+			MulticastDelegate receiver = (MulticastDelegate)_delegateField.GetValue(target);
 			if (receiver == null)
 				return;
-			((IReceiver)receiver).Receive(evnt);
+
+			_invocationParameters[0] = evnt;
+
+			Delegate[] delegates = receiver.GetInvocationList();
+			for (int i = 0; i < delegates.Length; i++)
+			{
+				Delegate d = delegates[i];
+				d.Method.Invoke(d.Target, _invocationParameters);
+			}
 		}
 	}
 }

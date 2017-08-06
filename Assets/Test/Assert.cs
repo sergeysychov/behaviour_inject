@@ -32,7 +32,10 @@ namespace BehaviourInject.Test
 		}
 		public static void Equals(object val, object val2, string message = "")
 		{
-			True(val.Equals(val2), message);
+			if (val == null)
+				True(val2 == null, message);
+			else
+				True(val.Equals(val2), message);
 		}
 		public static void NotEquals(object val, object val2, string message = "")
 		{
@@ -57,7 +60,7 @@ namespace BehaviourInject.Test
 
 		private static void LogRed(string msg)
 		{
-			LogColored(msg, "red");
+			Debug.LogError("<color=red>" + msg + "</color>");
 		}
 
 

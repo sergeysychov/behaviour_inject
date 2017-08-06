@@ -78,7 +78,7 @@ namespace BehaviourInject.Test
 		}
 		
 
-		[InjectEvent]
+		[InjectEvent(Inherit = true)]
 		public void Handle(IEvent evt)
 		{
 			RecievedEvt = evt;

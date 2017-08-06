@@ -347,7 +347,7 @@ namespace BehaviourInject
             {
                 ConstructorInfo constructor = constructors[i];
 
-                if (HasAttribute(constructor))
+                if (AttributeUtils.IsMarked<InjectAttribute>(constructor))
                     return constructor;
 
                 int parametersLength = constructor.GetParameters().Length;
@@ -359,13 +359,6 @@ namespace BehaviourInject
             }
 
             return constructorWithLeastArguments;
-        }
-
-
-        private bool HasAttribute(MemberInfo constructor)
-        {
-            object[] attributes = constructor.GetCustomAttributes(typeof(InjectAttribute), true);
-            return attributes.Length > 0;
         }
 
 

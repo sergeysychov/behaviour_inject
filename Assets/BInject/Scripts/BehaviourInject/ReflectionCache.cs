@@ -63,6 +63,12 @@ namespace BehaviourInject.Internal
 		}
 
 
+		private bool IsInjectable(MemberInfo member)
+		{
+			return AttributeUtils.IsMarked<InjectAttribute>(member);
+		}
+
+
 		public IEventHandler[] GetEventHandlers(Type target)
 		{
 			IEventHandler[] handlers;
@@ -80,16 +86,17 @@ namespace BehaviourInject.Internal
 		{
 			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			List<IEventHandler> events = new List<IEventHandler>();
+
 			MethodInfo[] methods = target.GetMethods(flags);
 
 			foreach (MethodInfo methodInfo in methods)
 			{
-				if (IsNotBlindEvent(methodInfo))
+				if (IsSystemOrEngine(methodInfo) 
+					|| !AttributeUtils.IsMarked<InjectEventAttribute>(methodInfo))
 					continue;
 
 				ParameterInfo[] parameters = methodInfo.GetParameters();
-				int parametersCount = parameters.Length;
-				if (parametersCount != 1)
+				if (parameters.Length != 1)
 					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event handlers can not have more than one argument!");
 
 				Type eventType = parameters[0].ParameterType;
@@ -99,41 +106,37 @@ namespace BehaviourInject.Internal
 				events.Add(new MethodEventHandler(methodInfo, eventType));
 			}
 
-			PropertyInfo[] properties = target.GetProperties(flags);
-			Type receiverGeneric = typeof(EventReceiver<>);
-
-			foreach (PropertyInfo propertyInfo in properties)
+			FieldInfo[] fields = target.GetFields(flags);
+			Type demandedFieldType = typeof(MulticastDelegate);
+			foreach (FieldInfo fieldInfo in fields)
 			{
-				Type propertyType = propertyInfo.PropertyType;
-
-				if (!propertyType.IsGenericType || propertyType.GetGenericTypeDefinition() != receiverGeneric)
+				Type fieldType = fieldInfo.FieldType;
+				if (IsSystemOrEngine(fieldInfo)
+					||!AttributeUtils.IsMarked<InjectEventAttribute>(fieldInfo)
+					|| !demandedFieldType.IsAssignableFrom(fieldType))
 					continue;
 
-				Type eventType = propertyType.GetGenericArguments()[0];
-				if(eventType.IsValueType)
-					throw new BehaviourInjectException(target.FullName + "." + propertyInfo.Name + ": Injected event can not be a value type!");
+				MethodInfo invokeMethod = fieldType.GetMethod("Invoke");
+				ParameterInfo[] parameters = invokeMethod.GetParameters();
+				if (parameters.Length != 1)
+					throw new BehaviourInjectException(target.FullName + "." + fieldInfo.Name 
+						+ " delegate should have only one argument");
 
-				events.Add(new ReceiverEventHandler(propertyInfo, eventType));
+				Type eventType = parameters[0].ParameterType;
+				events.Add(new DelegateEventHandler(fieldInfo, eventType));
 			}
 
 			return events.ToArray();
 		}
 
-		private bool IsInjectable(MemberInfo member)
-		{
-			return ContainsAttribute(member, typeof(InjectAttribute));
-		}
 
-		private bool IsNotBlindEvent(MethodInfo member)
+		private bool IsSystemOrEngine(MemberInfo info)
 		{
-			return !ContainsAttribute(member, typeof(InjectEventAttribute));
-		}
-
-
-		private bool ContainsAttribute(MemberInfo member, Type attributeType)
-		{
-			object[] attributes = member.GetCustomAttributes(attributeType, true);
-			return attributes.Length > 0;
+			string @namespace = info.DeclaringType.Namespace;
+			return 
+				!String.IsNullOrEmpty(@namespace) &&
+				( @namespace.Contains("System") 
+				|| @namespace.Contains("UnityEngine") );
 		}
 
 

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,7 +20,11 @@ namespace BehaviourInject.Test
 		[Inject]
 		public AutocomposeDependency PropertyInjected { get; private set; }
 
-		public EventReceiver<IEvent> Receiver { get; private set; }
+		[InjectEvent(Inherit = true)]
+		public Action<IEvent> OnIEvent;
+
+		[InjectEvent()]
+		public Action<TestEvent> EmptyEvent;
 
 		[Inject]
 		public void Init(AutocomposeDependency dep)
@@ -29,8 +34,7 @@ namespace BehaviourInject.Test
 
 		private void Awake()
 		{
-			Receiver = new EventReceiver<IEvent>();
-			Receiver.OnEvent += Handle;
+			OnIEvent += Handle;
 		}
 
 		void Start()

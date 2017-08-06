@@ -1,16 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 using BehaviourInject;
 
 public class EventBenchReceiver : MonoBehaviour {
 
-	public EventReceiver<MyEvent> receiver { get; private set; }
+	[InjectEvent]
+	public Action<MyEvent> receiver;
 	
 	void Awake()
 	{
-		receiver = new EventReceiver<MyEvent>();
-		receiver.OnEvent += HandleEvent;
+		receiver += HandleEvent;
 	}
 
 	//[InjectEvent]

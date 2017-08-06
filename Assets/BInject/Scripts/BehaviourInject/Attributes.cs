@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Reflection;
 
 namespace BehaviourInject
 {
@@ -30,5 +31,30 @@ namespace BehaviourInject
     { }
 
 	public class InjectEventAttribute : Attribute
-	{ }
+	{
+		public bool Inherit { get; set; }
+	}
+
+
+	public static class AttributeUtils
+	{
+		public static bool IsMarked<T>(MemberInfo member)
+		{
+			object[] attributes = member.GetCustomAttributes(typeof(T), false);
+			return attributes.Length > 0;
+		}
+
+		public static bool TryGetAttribute<T>(MemberInfo member, out T t)
+		{
+			object[] attributes = member.GetCustomAttributes(typeof(T), false);
+			bool hasAttributes = attributes.Length > 0;
+
+			if (hasAttributes)
+				t = (T)attributes[0];
+			else
+				t = default(T);
+
+			return hasAttributes;
+		}
+	}
 }
