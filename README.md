@@ -240,7 +240,7 @@ Event model in BehaviourInject assumes that event sender resolves interface IEve
 		_eventManager.DispatchEvent(evt);
 	}
 ```
-Any targeted MonoBehaviour or object that is registered as dependency may receive that event if it have handler method. This method should contain single argument that has the same type as event object or its ancestors and signed with [InjectEvent] attribute.
+Any targeted MonoBehaviour or object that is registered as dependency may receive that event if it have handler method. This method should contain single argument that has the same type as event object and signed with [InjectEvent] attribute.
 
 ```csharp
 //both of this methods will be triggered on 'MyEvent' event because 'MyEvent' implements 'IMyEvent' interface
@@ -249,24 +249,23 @@ Any targeted MonoBehaviour or object that is registered as dependency may receiv
 public void ReceiveEvent(MyEvent evt)
 { ... }
 
-[InjectEvent]
+[InjectEvent(Inherit = true)]
 public void ReceiveEventInterface(IMyEvent evt)
 { ... }
 ```
-
+Setting up **Inherit** property to true allows event handler to receive events, that implements or extends specified event Type.
 This technique allows to dispatch and recieve events without taking care of subsctribing and unsubscribing.
 
 If for some reason you still need opportunity to subscribe or unsubscribe you can use following method.
 ```csharp
-public EventReceiver<MyEvent> Receiver { get; private set; }
-
+[InjectEvent]
+public Action<MyEvent> OnMyEvent;
 void Start()
 {
-	Receiver = new EventReceiver<MyEvent>();
-	Receiver.OnEvent += ReceiveEvent;
+	OnMyEvent += ReceiveEvent;
 }
 ```
-All you need is just define generic class **EventReceiver** as a **public property** and subscribe handling method.
+All you need is just define a delegate as a **field** marked by [InjectEvent] and subscribe handling method.
 
 ## <a id="commands"></a> Commands
 <a href="#table">Back to contents</a>
