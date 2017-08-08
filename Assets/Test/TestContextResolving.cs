@@ -20,6 +20,14 @@ namespace BehaviourInject.Test
 			Assert.NotNull(auto.FieldInjected, "auto field injected");
 			Assert.NotNull(auto.InitInjected, "auto Init injected");
 
+			DependencyInherited inherit = context.TestResolve<DependencyInherited>();
+			Assert.NotNull(inherit, "resolve child");
+			Assert.NotNull(inherit.AdditionalChildDep, "child own dep");
+			Assert.NotNull(inherit.PropertyInjected, "child inherited property dep");
+			Assert.NotNull(inherit.FieldInjected, "child inherited field dep");
+			Assert.NotNull(inherit.InitInjected, "child inherited method dep");
+			Assert.Equals(inherit.InjCount, 1, "child injection called only once");
+
 			Assert.NotNull(context.TestResolve<IDependency>(), "resolve interface");
 			Assert.NotNull(context.TestResolve<IDependencyAuto>(), "resolve auto interface");
 
@@ -32,6 +40,7 @@ namespace BehaviourInject.Test
 			return Context.Create()
 				.RegisterDependency(new SimpleDependency())
 				.RegisterType<AutocomposedDependency>()
+				.RegisterType<DependencyInherited>()
 				.RegisterDependencyAs<IDependencyImpl, IDependency>(new IDependencyImpl())
 				.RegisterTypeAs<IDependencyAutoImpl, IDependencyAuto>();
 		}
@@ -43,11 +52,13 @@ namespace BehaviourInject.Test
 		{
 			public SimpleDependency ConstructorInjected;
 			[Inject]
-			public SimpleDependency PropertyInjected { get; private set; }
+			public virtual SimpleDependency PropertyInjected { get; set; }
 			[Inject]
 			private SimpleDependency _fieldInjected;
 			public SimpleDependency FieldInjected { get { return _fieldInjected; } }
 			public SimpleDependency InitInjected;
+
+			public int InjCount = 0;
 
 			public AutocomposedDependency(SimpleDependency foo)
 			{
@@ -59,6 +70,29 @@ namespace BehaviourInject.Test
 			{
 				InitInjected = foo;
 			}
+
+			[Inject]
+			public virtual void CheckTwice(SimpleDependency foo)
+			{
+				InjCount++;
+			}
+		}
+
+
+		private class DependencyInherited : AutocomposedDependency
+		{
+			[Inject]
+			public SimpleDependency AdditionalChildDep { get; set; }
+
+			public DependencyInherited(SimpleDependency dep) : base (dep)
+			{ }
+
+			
+			/*[Inject]
+			public override void CheckTwice(SimpleDependency foo)
+			{
+				InjCount++;
+			}*/
 		}
 
 		private interface IDependency

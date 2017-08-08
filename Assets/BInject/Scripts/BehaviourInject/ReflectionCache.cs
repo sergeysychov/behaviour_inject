@@ -34,21 +34,33 @@ namespace BehaviourInject.Internal
 		private IMemberInjection[] GenerateInjectionsFor(Type type)
 		{
 			List<IMemberInjection> injections = new List<IMemberInjection>();
-			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-			PropertyInfo[] properties = type.GetProperties(flags);
-			for (int i = 0; i < properties.Length; i++)
-			{
-				PropertyInfo property = properties[i];
-				if (IsInjectable(property))
-					injections.Add(new PropertyInjection(property));
-			}
+			BindingFlags flags =
+				BindingFlags.Instance |
+				BindingFlags.Public |
+				BindingFlags.NonPublic |
+				BindingFlags.DeclaredOnly;
 
-			FieldInfo[] fields = type.GetFields(flags);
-			for (int i = 0; i < fields.Length; i++)
+			Type target = type;
+
+			while (!IsSystemOrEngine(target.Namespace))
 			{
-				FieldInfo field = fields[i];
-				if (IsInjectable(field))
-					injections.Add(new FieldInjection(field));
+				PropertyInfo[] properties = target.GetProperties(flags);
+				for (int i = 0; i < properties.Length; i++)
+				{
+					PropertyInfo property = properties[i];
+					if (IsInjectable(property))
+						injections.Add(new PropertyInjection(property));
+				}
+
+				FieldInfo[] fields = target.GetFields(flags);
+				for (int i = 0; i < fields.Length; i++)
+				{
+					FieldInfo field = fields[i];
+					if (IsInjectable(field))
+						injections.Add(new FieldInjection(field));
+				}
+
+				target = target.BaseType;
 			}
 
 			MethodInfo[] methods = type.GetMethods();
@@ -84,7 +96,11 @@ namespace BehaviourInject.Internal
 
 		private IEventHandler[] GenerateEventHandlers(Type target)
 		{
-			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			BindingFlags flags = 
+				BindingFlags.Instance | 
+				BindingFlags.Public | 
+				BindingFlags.NonPublic;
+
 			List<IEventHandler> events = new List<IEventHandler>();
 
 			MethodInfo[] methods = target.GetMethods(flags);
@@ -111,6 +127,7 @@ namespace BehaviourInject.Internal
 			foreach (FieldInfo fieldInfo in fields)
 			{
 				Type fieldType = fieldInfo.FieldType;
+
 				if (IsSystemOrEngine(fieldInfo)
 					||!AttributeUtils.IsMarked<InjectEventAttribute>(fieldInfo)
 					|| !demandedFieldType.IsAssignableFrom(fieldType))
@@ -133,6 +150,11 @@ namespace BehaviourInject.Internal
 		private bool IsSystemOrEngine(MemberInfo info)
 		{
 			string @namespace = info.DeclaringType.Namespace;
+			return IsSystemOrEngine(@namespace);
+		}
+
+		private bool IsSystemOrEngine(string @namespace)
+		{
 			return 
 				!String.IsNullOrEmpty(@namespace) &&
 				( @namespace.Contains("System") 
