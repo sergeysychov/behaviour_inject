@@ -358,6 +358,9 @@ namespace BehaviourInject
                 }
             }
 
+			if (constructorWithLeastArguments == null)
+				throw new BehaviourInjectException("Can not find constructor for type " + resolvingType.FullName);
+
             return constructorWithLeastArguments;
         }
 

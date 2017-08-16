@@ -39,9 +39,9 @@ namespace BehaviourInject.Test
 
 		void Start()
 		{
+			Assert.NotNull(_fieldInjected, " field inject");
 			string keyword = _fieldInjected.Keyword;
 			Assert.NotNull(_idependency, keyword + " parent and interface");
-			Assert.NotNull(_fieldInjected, keyword + " field inject");
 			Assert.NotNull(_methodInjected, keyword + " method inject");
 			Assert.NotNull(PropertyInjected, keyword + " property inject");
 			Assert.Equals(_contextKeyword, _fieldInjected.Keyword, keyword + " compare contexts");

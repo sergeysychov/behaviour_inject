@@ -30,6 +30,14 @@ namespace BehaviourInject
     public class InjectAttribute : Attribute
     { }
 
+	/// <summary>
+	/// This attribute allows to create dependency on place instead of injecting it from context.
+	/// Type of created object might be not registered, but all of it's dependencies has to be registered.
+	/// Each member with this attribute will obtain it's own unique newely created object
+	/// </summary>
+    public class CreateAttribute : Attribute
+    { }
+
 	public class InjectEventAttribute : Attribute
 	{
 		public bool Inherit { get; set; }

@@ -10,7 +10,14 @@ namespace BehaviourInject.Test
 	{
 		private void Start()
 		{
-			var context = CreateFilledContext();
+			var simpleDep = new SimpleDependency();
+
+			var context = Context.Create()
+				.RegisterDependency(simpleDep)
+				.RegisterType<AutocomposedDependency>()
+				.RegisterType<DependencyInherited>()
+				.RegisterDependencyAs<IDependencyImpl, IDependency>(new IDependencyImpl())
+				.RegisterTypeAs<IDependencyAutoImpl, IDependencyAuto>();
 
 			Assert.NotNull(context.TestResolve<SimpleDependency>(), "resolve simple");
 			AutocomposedDependency auto = context.TestResolve<AutocomposedDependency>();
@@ -18,6 +25,9 @@ namespace BehaviourInject.Test
 			Assert.NotNull(auto.ConstructorInjected, "auto constructor injected");
 			Assert.NotNull(auto.PropertyInjected, "auto property injected");
 			Assert.NotNull(auto.FieldInjected, "auto field injected");
+			Assert.NotNull(auto.Created, "local creation");
+			Assert.NotNull(auto.Created._dependency, "local creation dep not null");
+			Assert.Equals(simpleDep, auto.FieldInjected, "auto field injected equals");
 			Assert.NotNull(auto.InitInjected, "auto Init injected");
 
 			DependencyInherited inherit = context.TestResolve<DependencyInherited>();
@@ -33,17 +43,7 @@ namespace BehaviourInject.Test
 
 			context.Destroy();
 		}
-
-
-		private Context CreateFilledContext()
-		{
-			return Context.Create()
-				.RegisterDependency(new SimpleDependency())
-				.RegisterType<AutocomposedDependency>()
-				.RegisterType<DependencyInherited>()
-				.RegisterDependencyAs<IDependencyImpl, IDependency>(new IDependencyImpl())
-				.RegisterTypeAs<IDependencyAutoImpl, IDependencyAuto>();
-		}
+		
 
 		private class SimpleDependency
 		{ }
@@ -57,6 +57,9 @@ namespace BehaviourInject.Test
 			private SimpleDependency _fieldInjected;
 			public SimpleDependency FieldInjected { get { return _fieldInjected; } }
 			public SimpleDependency InitInjected;
+
+			[Create]
+			public CreatedDependency Created;
 
 			public int InjCount = 0;
 
@@ -94,6 +97,14 @@ namespace BehaviourInject.Test
 				InjCount++;
 			}*/
 		}
+
+
+		private class CreatedDependency
+		{
+			[Inject]
+			public SimpleDependency _dependency;
+		}
+
 
 		private interface IDependency
 		{

@@ -77,7 +77,8 @@ namespace BehaviourInject.Internal
 
 		private bool IsInjectable(MemberInfo member)
 		{
-			return AttributeUtils.IsMarked<InjectAttribute>(member);
+			return AttributeUtils.IsMarked<InjectAttribute>(member)
+				|| AttributeUtils.IsMarked<CreateAttribute>(member);
 		}
 
 

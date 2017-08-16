@@ -9,32 +9,65 @@ namespace BehaviourInject.Internal
 	}
 
 
-	public class PropertyInjection : IMemberInjection
+	public class AbstractInjecton {
+
+		private Mode _mode;
+
+		public AbstractInjecton(MemberInfo info)
+		{
+			_mode = AttributeUtils.IsMarked<CreateAttribute>(info) ? Mode.Create : Mode.Inject;
+		}
+
+		protected object GetDependency(Type type, Context context)
+		{
+			if (_mode == Mode.Create)
+			{
+				return context.AutocomposeDependency(type, 0);
+			}
+			else
+			{
+				return context.Resolve(type);
+			}
+		}
+
+		private enum Mode
+		{
+			Create,
+			Inject
+		}
+	}
+
+
+	public class PropertyInjection : AbstractInjecton, IMemberInjection
 	{
 		private PropertyInfo _propertyInfo;
 		private Type _dependencyType;
+		private bool _createMode;
 
-		public PropertyInjection(PropertyInfo info)
+		public PropertyInjection(PropertyInfo info) : base(info)
 		{
+			_createMode = AttributeUtils.IsMarked<CreateAttribute>(info);
 			_propertyInfo = info;
 			_dependencyType = info.PropertyType;
 		}
 		
 		public void Inject(object target, Context context)
 		{
-			object dependency = context.Resolve(_dependencyType);
+			object dependency = GetDependency(_dependencyType, context);
+
 			if (_propertyInfo.GetValue(target, null) != null)
 				throw new BehaviourInjectException(String.Format("Property {0} to inject is already contains something!", _propertyInfo.Name));
 			_propertyInfo.SetValue(target, dependency, null);
 		}
 	}
 
-	public class FieldInjection : IMemberInjection
+	public class FieldInjection : AbstractInjecton, IMemberInjection
 	{
 		private FieldInfo _fieldInfo;
 		private Type _dependencyType;
 
 		public FieldInjection(FieldInfo info)
+			: base(info)
 		{
 			_fieldInfo = info;
 			_dependencyType = info.FieldType;
@@ -42,7 +75,8 @@ namespace BehaviourInject.Internal
 		
 		public void Inject(object target, Context context)
 		{
-			object dependency = context.Resolve(_dependencyType);
+			object dependency = GetDependency(_dependencyType, context);
+
 			if (_fieldInfo.GetValue(target) != null)
 				throw new BehaviourInjectException(String.Format("Field {0} to inject is already contains something!", _fieldInfo.Name));
 			_fieldInfo.SetValue(target, dependency);
@@ -50,7 +84,7 @@ namespace BehaviourInject.Internal
 	}
 
 
-	public class MethodInjection : IMemberInjection
+	public class MethodInjection : AbstractInjecton, IMemberInjection
 	{
 		private MethodInfo _methodInfo;
 
@@ -58,6 +92,7 @@ namespace BehaviourInject.Internal
 		private object[] _invokationArguments;
 
 		public MethodInjection(MethodInfo info)
+			: base(info)
 		{
 			_methodInfo = info;
 			ParameterInfo[] arguments = _methodInfo.GetParameters();
@@ -75,7 +110,7 @@ namespace BehaviourInject.Internal
 			for (int i = 0; i < _dependencyTypes.Length; i++)
 			{
 				Type dependencyType = _dependencyTypes[i];
-				_invokationArguments[i] = context.Resolve(dependencyType);
+				_invokationArguments[i] = GetDependency(dependencyType, context);
 			}
 
 			_methodInfo.Invoke(target, _invokationArguments);
