@@ -254,8 +254,8 @@ namespace BehaviourInject
 			if (!_commandsByEvent.ContainsKey(eventType))
 			{
 				var newEntry = new CommandEntry(eventType);
-					_commandsByEvent.Add(eventType, newEntry);
-					_commands.Add(newEntry);
+				_commandsByEvent.Add(eventType, newEntry);
+				_commands.Add(newEntry);
 			}
 
 			CommandEntry entry = _commandsByEvent[eventType];

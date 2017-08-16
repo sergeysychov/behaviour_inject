@@ -5,6 +5,7 @@ using UnityEditor;
 namespace BehaviourInject.Internal
 {
 #if UNITY_EDITOR
+	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Injector))]
 	public class ChooseContextProperyDrawer : Editor
 	{
@@ -52,6 +53,7 @@ namespace BehaviourInject.Internal
 		}
 	}
 
+	[CanEditMultipleObjects]
 	[CustomEditor(typeof(HierarchyContext))]
 	public class HierarchyContextProperyDrawer : Editor
 	{
