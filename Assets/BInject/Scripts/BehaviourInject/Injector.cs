@@ -124,8 +124,15 @@ namespace BehaviourInject
 				IEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType);
 				foreach (IEventHandler handler in handlers)
 				{
-					if (handler.IsSuitableForEvent(eventType))
-						handler.Invoke(component, blindEvent);
+					try
+					{
+						if (handler.IsSuitableForEvent(eventType))
+							handler.Invoke(component, blindEvent);
+					}
+					catch (Exception e)
+					{
+						Debug.LogException(e);
+					}
 				}
 			}
 		}

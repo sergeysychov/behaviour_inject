@@ -138,8 +138,14 @@ namespace BehaviourInject
 			for (int i = 0; i < handlers.Length; i++)
 			{
 				IEventHandler handler = handlers[i];
-				if (handler.IsSuitableForEvent(eventType))
-					handler.Invoke(recipient, evt);
+				try
+				{
+					if (handler.IsSuitableForEvent(eventType))
+						handler.Invoke(recipient, evt);
+				} catch(Exception e)
+				{
+					UnityEngine.Debug.LogException(e);
+				}
 			}
 		}
 
@@ -152,7 +158,15 @@ namespace BehaviourInject
 				Type commandType = commands[i];
 				ICommand command = (ICommand)AutocomposeDependency(commandType, 0);
 				InjectEventTo(command, eventType, evt);
-				command.Execute();
+				
+				try
+				{
+					command.Execute();
+				}
+				catch (Exception e)
+				{
+					UnityEngine.Debug.LogException(e);
+				}
 			}
 		}
 
