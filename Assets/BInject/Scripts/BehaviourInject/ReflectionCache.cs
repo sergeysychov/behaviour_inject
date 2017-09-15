@@ -99,49 +99,54 @@ namespace BehaviourInject.Internal
 		{
 			BindingFlags flags = 
 				BindingFlags.Instance | 
-				BindingFlags.Public | 
-				BindingFlags.NonPublic;
+				BindingFlags.Public |
+				BindingFlags.DeclaredOnly;
 
 			List<IEventHandler> events = new List<IEventHandler>();
 
-			MethodInfo[] methods = target.GetMethods(flags);
 
-			foreach (MethodInfo methodInfo in methods)
+			while (!IsSystemOrEngine(target.Namespace))
 			{
-				if (IsSystemOrEngine(methodInfo) 
-					|| !AttributeUtils.IsMarked<InjectEventAttribute>(methodInfo))
-					continue;
+				MethodInfo[] methods = target.GetMethods(flags);
 
-				ParameterInfo[] parameters = methodInfo.GetParameters();
-				if (parameters.Length != 1)
-					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event handlers can not have more than one argument!");
+				foreach (MethodInfo methodInfo in methods)
+				{
+					if (IsSystemOrEngine(methodInfo)
+						|| !AttributeUtils.IsMarked<InjectEventAttribute>(methodInfo))
+						continue;
 
-				Type eventType = parameters[0].ParameterType;
-				if(eventType.IsValueType)
-					throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
+					ParameterInfo[] parameters = methodInfo.GetParameters();
+					if (parameters.Length != 1)
+						throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event handlers can not have more than one argument!");
 
-				events.Add(new MethodEventHandler(methodInfo, eventType));
-			}
+					Type eventType = parameters[0].ParameterType;
+					if (eventType.IsValueType)
+						throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
 
-			FieldInfo[] fields = target.GetFields(flags);
-			Type demandedFieldType = typeof(MulticastDelegate);
-			foreach (FieldInfo fieldInfo in fields)
-			{
-				Type fieldType = fieldInfo.FieldType;
+					events.Add(new MethodEventHandler(methodInfo, eventType));
+				}
 
-				if (IsSystemOrEngine(fieldInfo)
-					||!AttributeUtils.IsMarked<InjectEventAttribute>(fieldInfo)
-					|| !demandedFieldType.IsAssignableFrom(fieldType))
-					continue;
+				FieldInfo[] fields = target.GetFields(flags);
+				Type demandedFieldType = typeof(MulticastDelegate);
+				foreach (FieldInfo fieldInfo in fields)
+				{
+					Type fieldType = fieldInfo.FieldType;
 
-				MethodInfo invokeMethod = fieldType.GetMethod("Invoke");
-				ParameterInfo[] parameters = invokeMethod.GetParameters();
-				if (parameters.Length != 1)
-					throw new BehaviourInjectException(target.FullName + "." + fieldInfo.Name 
-						+ " delegate should have only one argument");
+					if (IsSystemOrEngine(fieldInfo)
+						|| !AttributeUtils.IsMarked<InjectEventAttribute>(fieldInfo)
+						|| !demandedFieldType.IsAssignableFrom(fieldType))
+						continue;
 
-				Type eventType = parameters[0].ParameterType;
-				events.Add(new DelegateEventHandler(fieldInfo, eventType));
+					MethodInfo invokeMethod = fieldType.GetMethod("Invoke");
+					ParameterInfo[] parameters = invokeMethod.GetParameters();
+					if (parameters.Length != 1)
+						throw new BehaviourInjectException(target.FullName + "." + fieldInfo.Name
+							+ " delegate should have only one argument");
+
+					Type eventType = parameters[0].ParameterType;
+					events.Add(new DelegateEventHandler(fieldInfo, eventType));
+				}
+				target = target.BaseType;
 			}
 
 			return events.ToArray();

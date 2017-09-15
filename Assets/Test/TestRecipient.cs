@@ -23,7 +23,7 @@ namespace BehaviourInject.Test
 		[InjectEvent(Inherit = true)]
 		public Action<IEvent> OnIEvent;
 
-		[InjectEvent()]
+		[InjectEvent]
 		public Action<TestEvent> EmptyEvent;
 
 		[Inject]

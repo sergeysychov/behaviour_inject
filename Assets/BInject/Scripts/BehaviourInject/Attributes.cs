@@ -40,6 +40,7 @@ namespace BehaviourInject
 
 	public class InjectEventAttribute : Attribute
 	{
+		//Defines if event ancestors is valid event receivers.
 		public bool Inherit { get; set; }
 	}
 

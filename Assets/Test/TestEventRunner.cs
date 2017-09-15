@@ -9,6 +9,7 @@ namespace BehaviourInject.Test
 	public class TestEventRunner : MonoBehaviour
 	{
 		public TestRecipient _recipient;
+		public TestRecipientSuccessor _recipientSuccessor;
 
 		[Inject]
 		private IEventDispatcher _dispatcher;
@@ -24,6 +25,8 @@ namespace BehaviourInject.Test
 			Assert.Equals(_dependency.RecievedEvt, evt, "dep event recieved");
 			Assert.Equals(_recipient.evt1, evt, "receiver ok");
 			Assert.Equals(_recipient.evt2, evt, "beh event recieved");
+			Assert.Equals(_recipientSuccessor._fieldEvt, evt, "beh property event at successor recieved");
+			Assert.Equals(_recipientSuccessor._methodEvt, evt, "beh method event at successor recieved");
 		}
 	}
 }
