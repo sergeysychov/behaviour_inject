@@ -140,7 +140,10 @@ namespace BehaviourInject
 
 		void OnDestroy()
 		{
-			_context.OnContextDestroyed -= HandleContextDestroyed;
+			//_context might be not initialized in case of exception in Awake (e.g. context not found)
+			if(_context != null)
+				_context.OnContextDestroyed -= HandleContextDestroyed;
+
 			_eventManager.EventInjectors -= InjectBlindEvent;
 			_eventManager = null;
 			_context = null;
