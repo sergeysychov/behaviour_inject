@@ -100,6 +100,7 @@ namespace BehaviourInject.Internal
 			BindingFlags flags = 
 				BindingFlags.Instance | 
 				BindingFlags.Public |
+				BindingFlags.NonPublic |
 				BindingFlags.DeclaredOnly;
 
 			List<IEventHandler> events = new List<IEventHandler>();
