@@ -9,6 +9,9 @@ namespace BehaviourInject.Test
 	{
 		public GameObject _testRunner;
 
+		[SerializeField]
+		private EventDuplicationRecipient _recipient;
+
 		private Context _contextTest;
 		private Context _contextBase;
 		private PrecomposeDependency _precomposed;
@@ -25,7 +28,8 @@ namespace BehaviourInject.Test
 			_contextBase = Context.Create("base")
 				.SetParentContext("test")
 				.RegisterDependency(new PrecomposeDependency("base"))
-				.RegisterType<AutocomposeDependency>();
+				.RegisterType<AutocomposeDependency>()
+				.RegisterDependency(_recipient);
 		}
 
 

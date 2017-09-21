@@ -40,6 +40,8 @@ namespace BehaviourInject
 		private EventManager _eventManager;
 		private MonoBehaviour[] _componentsCache;
 
+		private bool _suppressEvents = false;
+
         void Awake()
         {
 			if (_useHierarchy)
@@ -53,7 +55,9 @@ namespace BehaviourInject
 
 			_context.OnContextDestroyed += HandleContextDestroyed;
 			_eventManager = _context.EventManager;
-			_eventManager.EventInjectors += InjectBlindEvent;
+
+			if(!_suppressEvents)
+				_eventManager.EventInjectors += InjectBlindEvent;
 
 			FindAndResolveDependencies();
 		}
@@ -111,6 +115,12 @@ namespace BehaviourInject
 
 		private void InjectBlindEvent(object blindEvent)
 		{
+			if (_suppressEvents)
+			{
+				_eventManager.EventInjectors -= InjectBlindEvent;
+				return;
+			}
+
 			Type eventType = blindEvent.GetType();
 			if(_componentsCache == null)
 				_componentsCache = gameObject.GetComponents<MonoBehaviour>();
@@ -141,12 +151,19 @@ namespace BehaviourInject
 		void OnDestroy()
 		{
 			//_context might be not initialized in case of exception in Awake (e.g. context not found)
-			if(_context != null)
+			if (_context != null)
+			{
 				_context.OnContextDestroyed -= HandleContextDestroyed;
-
-			_eventManager.EventInjectors -= InjectBlindEvent;
+				_eventManager.EventInjectors -= InjectBlindEvent;
+			}
 			_eventManager = null;
 			_context = null;
+		}
+
+
+		public void SuppressEvents()
+		{
+			_suppressEvents = true;
 		}
 	}
 

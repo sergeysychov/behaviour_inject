@@ -186,10 +186,23 @@ namespace BehaviourInject
         public Context RegisterDependencyAs<T, IT>(T dependency) where T : IT
         {
             ThrowIfNull(dependency, "dependency");
+
+			UnityEngine.MonoBehaviour monobeh = dependency as UnityEngine.MonoBehaviour;
+			if (monobeh != null)
+				TrySuppressInjectorEvents(monobeh);
+
             Type dependencyType = typeof(IT);
 			InsertDependency(dependencyType, new SingleDependency(dependency));
 			return this;
         }
+
+
+		private void TrySuppressInjectorEvents(UnityEngine.MonoBehaviour behaviour)
+		{
+			Injector injector = behaviour.GetComponent<Injector>();
+			if (injector != null)
+				injector.SuppressEvents();
+		}
 
 
 		private void InsertDependency(Type type, IDependency dependency)
