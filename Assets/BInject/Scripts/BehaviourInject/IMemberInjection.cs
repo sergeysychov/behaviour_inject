@@ -42,11 +42,9 @@ namespace BehaviourInject.Internal
 	{
 		private PropertyInfo _propertyInfo;
 		private Type _dependencyType;
-		private bool _createMode;
 
 		public PropertyInjection(PropertyInfo info) : base(info)
 		{
-			_createMode = AttributeUtils.IsMarked<CreateAttribute>(info);
 			_propertyInfo = info;
 			_dependencyType = info.PropertyType;
 		}
