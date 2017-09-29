@@ -28,6 +28,36 @@ namespace BehaviourInject
 		}
 
 
+		public virtual void SwitchContext(int index)
+		{
+			if (_contextIndex != index)
+			{
+				if (_context != null)
+				{
+					_context.OnContextDestroyed -= OnContextDestroy;
+					_context = null;
+				}
+				_contextIndex = index;
+			}
+		}
+
+		public virtual void SwitchContext(string contextName)
+		{
+			Settings settings = Settings.Load();
+			int index = settings.FindIndexOf(contextName);
+
+			if (_contextIndex != index)
+			{
+				if (_context != null)
+				{
+					_context.OnContextDestroyed -= OnContextDestroy;
+					_context = null;
+				}
+				_contextIndex = index;
+			}
+		}
+
+
 		private void OnContextDestroy()
 		{
 			_context.OnContextDestroyed -= OnContextDestroy;

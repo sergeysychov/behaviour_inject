@@ -13,9 +13,9 @@ namespace BehaviourInject.Test
 		public TestEvent evt2;
 
 		[Inject]
-		private IDependency _idependency;
+		public IDependency Idependency { get; private set; }
 		[Inject]
-		private PrecomposeDependency _fieldInjected;
+		public PrecomposeDependency _fieldInjected;
 		private AutocomposeDependency _methodInjected;
 		[Inject]
 		public AutocomposeDependency PropertyInjected { get; private set; }
@@ -41,12 +41,12 @@ namespace BehaviourInject.Test
 		{
 			Assert.NotNull(_fieldInjected, " field inject");
 			string keyword = _fieldInjected.Keyword;
-			Assert.NotNull(_idependency, keyword + " parent and interface");
+			Assert.NotNull(Idependency, keyword + " parent and interface");
 			Assert.NotNull(_methodInjected, keyword + " method inject");
 			Assert.NotNull(PropertyInjected, keyword + " property inject");
 			Assert.Equals(_contextKeyword, _fieldInjected.Keyword, keyword + " compare contexts");
 			_methodInjected.Run();
-			_idependency.Run();
+			Idependency.Run();
 		}
 
 

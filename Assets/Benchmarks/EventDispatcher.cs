@@ -7,14 +7,14 @@ using UnityEngine;
 public class EventDispatcher : MonoBehaviour {
 
 	[Inject]
-	private IEventDispatcher _eventManager;
+	public IEventDispatcher EventManager { get; private set; }
 	
 	IEnumerator Start () {
 
 		yield return new WaitForSeconds(2f);
 
 		Debug.Log("Dispatch event");
-		_eventManager.DispatchEvent(new MyEvent { _index = 2 });
+		EventManager.DispatchEvent(new MyEvent { _index = 2 });
 	}
 }
 

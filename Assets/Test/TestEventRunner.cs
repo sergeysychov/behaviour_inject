@@ -14,17 +14,17 @@ namespace BehaviourInject.Test
 		public EventDuplicationSibling _eventDuplicationSibling;
 
 		[Inject]
-		private IEventDispatcher _dispatcher;
+		public IEventDispatcher Dispatcher { get; private set; }
 		[Inject]
-		private PrecomposeDependency _dependency;
+		public PrecomposeDependency Dependency { get; private set; }
 
 		private void Start()
 		{
 			var evt = new TestEvent();
-			_dispatcher.DispatchEvent(evt);
+			Dispatcher.DispatchEvent(evt);
 
-			Assert.NotNull(_dependency.RecievedEvt, "dep event not null");
-			Assert.Equals(_dependency.RecievedEvt, evt, "dep event recieved");
+			Assert.NotNull(Dependency.RecievedEvt, "dep event not null");
+			Assert.Equals(Dependency.RecievedEvt, evt, "dep event recieved");
 			Assert.Equals(_recipient.evt1, evt, "receiver ok");
 			Assert.Equals(_recipient.evt2, evt, "beh event recieved");
 			Assert.Equals(_recipientSuccessor._fieldEvt, evt, "beh property event at successor recieved");

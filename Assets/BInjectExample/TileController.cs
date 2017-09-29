@@ -16,11 +16,11 @@ namespace BehaviourInject.Example
 		//Injected dependency (TileStyle here) is resolved by Injector on the same gameObject
 		//Injector uses specified Context to resolve dependency
 		[Inject]
-		private TileStyle _style;
+		public TileStyle Style { get; private set; }
 		
 		void Start()
 		{
-			SetupStyle(_style);
+			SetupStyle(Style);
 		}
 
 
@@ -33,7 +33,7 @@ namespace BehaviourInject.Example
 
 		public void OnClickHandler()
 		{
-			SetupStyle(_style);
+			SetupStyle(Style);
 		}
 
 		//event handler. No need to subscribe or unsubscribe.

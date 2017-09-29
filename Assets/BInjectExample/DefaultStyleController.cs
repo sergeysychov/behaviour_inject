@@ -9,13 +9,18 @@ namespace BehaviourInject.Example
 	{
 		//Injected dependency (TileStyle here) is resolved by Injector on the same gameObject
 		//Injector uses specified Context to resolve dependency
-		[Inject]
 		private TileStyle _style;
 
 		//IEventDispatcher might be resolved from any context and represents 
 		//tool for propagating events
-		[Inject]
 		private IEventDispatcher _eventDispatcher;
+
+		[Inject]
+		public void Init(TileStyle style, IEventDispatcher dispatcher)
+		{
+			_style = style;
+			_eventDispatcher = dispatcher;
+		}
 
 		public void OnClick()
 		{

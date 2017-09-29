@@ -6,6 +6,8 @@ namespace BehaviourInject.Internal
 {
 	public class ReflectionCache
 	{
+		private static IMemberInjection[] EMPTY_MEMBER_COLLECTION = new IMemberInjection[0];
+
 		private static ReflectionCache _instance;
 
 		private Dictionary<Type, IMemberInjection[]> _behavioirInjections;
@@ -34,10 +36,13 @@ namespace BehaviourInject.Internal
 		private IMemberInjection[] GenerateInjectionsFor(Type type)
 		{
 			List<IMemberInjection> injections = new List<IMemberInjection>();
+
+			if (IsSystemOrEngine(type.Namespace))
+				return EMPTY_MEMBER_COLLECTION;
+
 			BindingFlags flags =
 				BindingFlags.Instance |
 				BindingFlags.Public |
-				BindingFlags.NonPublic |
 				BindingFlags.DeclaredOnly;
 
 			Type target = type;
@@ -60,15 +65,15 @@ namespace BehaviourInject.Internal
 						injections.Add(new FieldInjection(field));
 				}
 
-				target = target.BaseType;
-			}
+				MethodInfo[] methods = target.GetMethods(flags);
+				for (int i = 0; i < methods.Length; i++)
+				{
+					MethodInfo method = methods[i];
+					if (IsInjectable(method))
+						injections.Add(new MethodInjection(method));
+				}
 
-			MethodInfo[] methods = type.GetMethods();
-			for (int i = 0; i < methods.Length; i++)
-			{
-				MethodInfo method = methods[i];
-				if (IsInjectable(method))
-					injections.Add(new MethodInjection(method));
+				target = target.BaseType;
 			}
 
 			return injections.ToArray();
@@ -97,14 +102,12 @@ namespace BehaviourInject.Internal
 
 		private IEventHandler[] GenerateEventHandlers(Type target)
 		{
-			BindingFlags flags = 
-				BindingFlags.Instance | 
+			BindingFlags flags =
+				BindingFlags.Instance |
 				BindingFlags.Public |
-				BindingFlags.NonPublic |
 				BindingFlags.DeclaredOnly;
 
 			List<IEventHandler> events = new List<IEventHandler>();
-
 
 			while (!IsSystemOrEngine(target.Namespace))
 			{
@@ -160,12 +163,13 @@ namespace BehaviourInject.Internal
 			return IsSystemOrEngine(@namespace);
 		}
 
-		private bool IsSystemOrEngine(string @namespace)
+		public static bool IsSystemOrEngine(string @namespace)
 		{
-			return 
+			return
 				!String.IsNullOrEmpty(@namespace) &&
-				( @namespace.Contains("System") 
-				|| @namespace.Contains("UnityEngine") );
+				(@namespace.Contains("System")
+				|| @namespace.Contains("UnityEngine")
+				);
 		}
 
 

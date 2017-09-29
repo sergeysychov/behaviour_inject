@@ -54,7 +54,7 @@ namespace BehaviourInject.Test
 			[Inject]
 			public virtual SimpleDependency PropertyInjected { get; set; }
 			[Inject]
-			private SimpleDependency _fieldInjected;
+			public SimpleDependency _fieldInjected;
 			public SimpleDependency FieldInjected { get { return _fieldInjected; } }
 			public SimpleDependency InitInjected;
 
