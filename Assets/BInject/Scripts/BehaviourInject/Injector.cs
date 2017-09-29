@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using BehaviourInject.Internal;
 
@@ -40,7 +41,7 @@ namespace BehaviourInject
 		private EventManager _eventManager;
 		private MonoBehaviour[] _componentsCache;
 
-		private bool _suppressEvents = false;
+		private HashSet<Component> _detachedFromEvents;
 
         void Awake()
         {
@@ -56,8 +57,7 @@ namespace BehaviourInject
 			_context.OnContextDestroyed += HandleContextDestroyed;
 			_eventManager = _context.EventManager;
 
-			if(!_suppressEvents)
-				_eventManager.EventInjectors += InjectBlindEvent;
+			_eventManager.EventInjectors += InjectBlindEvent;
 
 			FindAndResolveDependencies();
 		}
@@ -115,12 +115,6 @@ namespace BehaviourInject
 
 		private void InjectBlindEvent(object blindEvent)
 		{
-			if (_suppressEvents)
-			{
-				_eventManager.EventInjectors -= InjectBlindEvent;
-				return;
-			}
-
 			Type eventType = blindEvent.GetType();
 			if(_componentsCache == null)
 				_componentsCache = gameObject.GetComponents<MonoBehaviour>();
@@ -128,6 +122,9 @@ namespace BehaviourInject
 			foreach (MonoBehaviour component in _componentsCache)
 			{
 				if (this == component)
+					continue;
+
+				if (DetachedFromEvents.Count > 0 && DetachedFromEvents.Contains(component))
 					continue;
 
 				Type componentType = component.GetType();
@@ -148,6 +145,15 @@ namespace BehaviourInject
 		}
 
 
+		private HashSet<Component> DetachedFromEvents {
+			get {
+				if (_detachedFromEvents == null)
+					_detachedFromEvents = new HashSet<Component>();
+				return _detachedFromEvents;
+			}
+		}
+
+
 		void OnDestroy()
 		{
 			//_context might be not initialized in case of exception in Awake (e.g. context not found)
@@ -161,9 +167,11 @@ namespace BehaviourInject
 		}
 
 
-		public void SuppressEvents()
+		public void SuppressEventsFor(Component component)
 		{
-			_suppressEvents = true;
+			if (component.gameObject != this.gameObject)
+				throw new BehaviourInjectException("Can not suppress events for component on different GameObject");
+			DetachedFromEvents.Add(component);
 		}
 	}
 

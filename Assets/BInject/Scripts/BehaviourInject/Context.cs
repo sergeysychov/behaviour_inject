@@ -197,11 +197,12 @@ namespace BehaviourInject
         }
 
 
+		//this method fixes bug, wich caused doubling event for components that are both dependency and recipient
 		private void TrySuppressInjectorEvents(UnityEngine.MonoBehaviour behaviour)
 		{
 			Injector injector = behaviour.GetComponent<Injector>();
 			if (injector != null)
-				injector.SuppressEvents();
+				injector.SuppressEventsFor(behaviour);
 		}
 
 
