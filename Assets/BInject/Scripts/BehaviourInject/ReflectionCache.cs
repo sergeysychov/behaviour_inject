@@ -9,12 +9,15 @@ namespace BehaviourInject.Internal
 		private static IMemberInjection[] EMPTY_MEMBER_COLLECTION = new IMemberInjection[0];
 
 		private static ReflectionCache _instance;
+		private string[] _excludedNamespaces;
 
 		private Dictionary<Type, IMemberInjection[]> _behavioirInjections;
 		private Dictionary<Type, IEventHandler[]> _blindEvents;
 
 		public ReflectionCache()
 		{
+			Settings settings = Settings.Load();
+			_excludedNamespaces = settings.ExcludedNames;
 			_behavioirInjections = new Dictionary<Type, IMemberInjection[]>();
 			_blindEvents = new Dictionary<Type, IEventHandler[]>();
 		}
@@ -37,7 +40,7 @@ namespace BehaviourInject.Internal
 		{
 			List<IMemberInjection> injections = new List<IMemberInjection>();
 
-			if (IsSystemOrEngine(type.Namespace))
+			if (IsIgnoredType(type))
 				return EMPTY_MEMBER_COLLECTION;
 
 			BindingFlags flags =
@@ -47,7 +50,7 @@ namespace BehaviourInject.Internal
 
 			Type target = type;
 
-			while (!IsSystemOrEngine(target.Namespace))
+			while (!IsIgnoredType(target))
 			{
 				PropertyInfo[] properties = target.GetProperties(flags);
 				for (int i = 0; i < properties.Length; i++)
@@ -109,13 +112,13 @@ namespace BehaviourInject.Internal
 
 			List<IEventHandler> events = new List<IEventHandler>();
 
-			while (!IsSystemOrEngine(target.Namespace))
+			while (!IsIgnoredType(target))
 			{
 				MethodInfo[] methods = target.GetMethods(flags);
 
 				foreach (MethodInfo methodInfo in methods)
 				{
-					if (IsSystemOrEngine(methodInfo)
+					if (IsIgnoredMember(methodInfo)
 						|| !AttributeUtils.IsMarked<InjectEventAttribute>(methodInfo))
 						continue;
 
@@ -136,7 +139,7 @@ namespace BehaviourInject.Internal
 				{
 					Type fieldType = fieldInfo.FieldType;
 
-					if (IsSystemOrEngine(fieldInfo)
+					if (IsIgnoredMember(fieldInfo)
 						|| !AttributeUtils.IsMarked<InjectEventAttribute>(fieldInfo)
 						|| !demandedFieldType.IsAssignableFrom(fieldType))
 						continue;
@@ -157,19 +160,31 @@ namespace BehaviourInject.Internal
 		}
 
 
-		private bool IsSystemOrEngine(MemberInfo info)
+		private bool IsIgnoredMember(MemberInfo info)
 		{
-			string @namespace = info.DeclaringType.Namespace;
-			return IsSystemOrEngine(@namespace);
+			string fullname = info.DeclaringType.FullName;
+			return IsIgnored(fullname);
 		}
 
-		public static bool IsSystemOrEngine(string @namespace)
+		private bool IsIgnoredType(Type type)
 		{
-			return
-				!String.IsNullOrEmpty(@namespace) &&
-				(@namespace.Contains("System")
-				|| @namespace.Contains("UnityEngine")
-				);
+			return IsIgnored(type.FullName);
+		}
+
+		private bool IsIgnored(string fullName)
+		{
+			if(String.IsNullOrEmpty(fullName))
+				return false;
+
+			int length = _excludedNamespaces.Length;
+			for (int i = 0; i < length; i++)
+			{
+				//UnityEngine.Debug.Log("full name <color=green>" + fullName + "</color> starts with <color=teal>" + _excludedNamespaces[i] + "</color> = " + fullName.StartsWith(_excludedNamespaces[i], StringComparison.InvariantCultureIgnoreCase));
+				if (fullName.StartsWith(_excludedNamespaces[i], StringComparison.Ordinal))
+					return true;
+			}
+
+			return false;
 		}
 
 

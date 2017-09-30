@@ -14,6 +14,10 @@ namespace BehaviourInject.Internal
 		[SerializeField]
 		public string[] ContextNames = { };
 
+		[Tooltip("If member or monobeh type has FullName that begins like that, it will be ignored by injectors and events. Use it to optimize injection time.")]
+		[SerializeField]
+		public string[] ExcludedNames = { "System", "UnityEngine" };
+
 		private int[] _optiopnsIndexes;
 
 		public static string[] GetContextNames()

@@ -30,6 +30,11 @@ namespace BehaviourInject.Test
 		{
 			True(val != null, message);
 		}
+		public static void IsNull(object val, string message = "")
+		{
+			True(val == null, message);
+		}
+
 		public static void Equals(object val, object val2, string message = "")
 		{
 			if (val == null)

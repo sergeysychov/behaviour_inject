@@ -92,7 +92,7 @@ namespace BehaviourInject
 
 			foreach (MonoBehaviour component in components)
 			{
-				if (this == component)
+				if (component == null || this == component)
 					continue;
 
 				InjectToBehaviour(component);
