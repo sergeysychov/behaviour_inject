@@ -59,7 +59,7 @@ public class MyBehaviour : MonoBehaviour
     public MyDataModel Model { get; private set; }
     
     [Inject]
-    private MyDataModel _model;
+    public MyDataModel _model;
     
     [Inject]
     public void Init(One one, Two two, Three three)
