@@ -65,7 +65,7 @@ namespace BehaviourInject
 
 		private Context GetContextFromHierarchy()
 		{
-			Transform ancestor = this.gameObject.transform.parent;
+			Transform ancestor = this.gameObject.transform;
 
 			while(ancestor != null)
 			{
@@ -121,7 +121,7 @@ namespace BehaviourInject
 
 			foreach (MonoBehaviour component in _componentsCache)
 			{
-				if (this == component)
+				if (component == null || this == component)
 					continue;
 
 				if (DetachedFromEvents.Count > 0 && DetachedFromEvents.Contains(component))
