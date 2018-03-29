@@ -36,6 +36,9 @@ namespace BehaviourInject.Test
 		private IEnumerator Start()
 		{
 			yield return new WaitForSeconds(0.5f);
+#if BINJECT_DIAGNOSTICS
+			Debug.Log(Diagnostics.BinjectDiagnostics.GetDiagnosticStirng());
+#endif
 			Destroy(gameObject);
 		}
 

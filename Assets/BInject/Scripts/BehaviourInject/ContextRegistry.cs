@@ -24,7 +24,9 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+#if BINJECT_DIAGNOSTICS
 using BehaviourInject.Diagnostics;
+#endif
 
 namespace BehaviourInject.Internal
 {
