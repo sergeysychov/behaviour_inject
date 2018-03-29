@@ -31,7 +31,7 @@ namespace BehaviourInject
 {
     //Do not use this class anywhere!
 
-    public class Context : IContextParent
+    public class Context : IContextParent, EventTransmitter
     {
 		public const string DEFAULT = "default";
 		private const int MAX_HIERARCHY_DEPTH = 32;
@@ -82,7 +82,7 @@ namespace BehaviourInject
 			_commandsByEvent = new Dictionary<Type, CommandEntry>(32);
 			
 			EventManager = new EventManager();
-			EventManager.EventInjectors += OnBlindEventHandler;
+			EventManager.AddTransmitter(this);
 			RegisterDependency<IEventDispatcher>(EventManager);
 
 			_parentContext = ParentContextStub.STUB;
@@ -107,7 +107,7 @@ namespace BehaviourInject
 		}
 
 
-		private void OnBlindEventHandler(object evnt)
+		public void TransmitEvent(object evnt)
 		{
 			Type eventType = evnt.GetType();
 			for (int i = 0; i < _listedDependencies.Count; i++)
@@ -414,7 +414,7 @@ namespace BehaviourInject
 
 			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
 			EventManager.ClearParent();
-			EventManager.EventInjectors -= OnBlindEventHandler;
+			EventManager.RemoveTransmitter(this);
 
 			if (OnContextDestroyed != null)
 				OnContextDestroyed();

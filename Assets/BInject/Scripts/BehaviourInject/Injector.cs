@@ -30,7 +30,7 @@ using BehaviourInject.Internal;
 namespace BehaviourInject
 {
 	[DisallowMultipleComponent]
-	public class Injector : MonoBehaviour
+	public class Injector : MonoBehaviour, EventTransmitter
     {
 		[SerializeField]
         private int _contextIndex = 0;
@@ -57,7 +57,7 @@ namespace BehaviourInject
 			_context.OnContextDestroyed += HandleContextDestroyed;
 			_eventManager = _context.EventManager;
 
-			_eventManager.EventInjectors += InjectBlindEvent;
+			_eventManager.AddTransmitter(this);
 
 			FindAndResolveDependencies();
 		}
@@ -113,7 +113,7 @@ namespace BehaviourInject
 		}
 
 
-		private void InjectBlindEvent(object blindEvent)
+		public void TransmitEvent(object blindEvent)
 		{
 			Type eventType = blindEvent.GetType();
 			if(_componentsCache == null)
@@ -160,7 +160,7 @@ namespace BehaviourInject
 			if (_context != null)
 			{
 				_context.OnContextDestroyed -= HandleContextDestroyed;
-				_eventManager.EventInjectors -= InjectBlindEvent;
+				_eventManager.RemoveTransmitter(this);
 			}
 			_eventManager = null;
 			_context = null;

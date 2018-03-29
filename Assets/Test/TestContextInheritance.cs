@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using BehaviourInject.Internal;
 
 namespace BehaviourInject.Test
 {
@@ -60,20 +61,29 @@ namespace BehaviourInject.Test
 			//events
 
 			Event evt = new Event();
-			bool isReached = false;
-			bool isReachedThird = false;
-			bool isReachedParent = false;
-			parentContext.EventManager.EventInjectors += WrongHandler;
-			secondContext.EventManager.EventInjectors += (e) => { isReached = true; };
+			//bool isReached = false;
+			//bool isReachedThird = false;
+			//bool isReachedParent = false;
+			var wrong = new WrongTransmitter();
+			var parentContextTransmitter = new FlaggedTransmitter();
+			var secondContextTransmitter = new FlaggedTransmitter();
+			var thirdContextTransmitter = new FlaggedTransmitter();
+
+			parentContext.EventManager.AddTransmitter(wrong);
+			//secondContext.EventManager.EventInjectors += (e) => { isReached = true; };
+			secondContext.EventManager.AddTransmitter(secondContextTransmitter);
 			secondContext.TestResolve<IEventDispatcher>().DispatchEvent(evt);
-			Assert.True(isReached, "inherit event reached child");
-			isReached = false;
-			
-			parentContext.EventManager.EventInjectors -= WrongHandler;
-			parentContext.EventManager.EventInjectors += (e) => { isReachedParent = true; };
-			thirdContext.EventManager.EventInjectors += (e) => { isReachedThird = true; };
+			Assert.True(secondContextTransmitter.IsReached, "inherit event reached child");
+			secondContextTransmitter.IsReached = false;
+
+			parentContext.EventManager.RemoveTransmitter(wrong);
+			parentContext.EventManager.AddTransmitter(parentContextTransmitter);
+			thirdContext.EventManager.AddTransmitter(thirdContextTransmitter);
 			parentContext.TestResolve<IEventDispatcher>().DispatchEvent(evt);
-			Assert.True(isReached && isReachedParent && isReachedThird, "inherit event reached all");
+			Assert.True(
+				parentContextTransmitter.IsReached && 
+				secondContextTransmitter.IsReached && 
+				thirdContextTransmitter.IsReached, "inherit event reached all");
 
 			//destruction
 
@@ -81,12 +91,6 @@ namespace BehaviourInject.Test
 			Assert.False(secondContext.IsDestroyed || parentContext.IsDestroyed, "context child no inversive destruction");
 			parentContext.Destroy();
 			Assert.True(siblingContext.IsDestroyed && secondContext.IsDestroyed, "context child inherited destruction");
-		}
-
-
-		private void WrongHandler(object evt)
-		{
-			Assert.NotReached("parent context catched event from child");
 		}
 
 		private class InheritedDependency
@@ -97,5 +101,24 @@ namespace BehaviourInject.Test
 		{ }
 		private class Event
 		{ }
+
+
+		private class WrongTransmitter : EventTransmitter
+		{
+			public void TransmitEvent(object evt)
+			{
+				Assert.NotReached("parent context catched event from child");
+			}
+		}
+
+		private class FlaggedTransmitter : EventTransmitter
+		{
+			public bool IsReached { get; set; }
+
+			public void TransmitEvent(object evt)
+			{
+				IsReached = true;
+			}
+		}
 	}
 }
