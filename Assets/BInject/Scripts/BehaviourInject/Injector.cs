@@ -26,6 +26,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BehaviourInject.Internal;
+#if BINJECT_DIAGNOSTICS
+using BehaviourInject.Diagnostics;
+#endif
 
 namespace BehaviourInject
 {
@@ -44,7 +47,7 @@ namespace BehaviourInject
 		private HashSet<Component> _detachedFromEvents;
 
         void Awake()
-        {
+		{
 			if (_useHierarchy)
 			{
 				_context = GetContextFromHierarchy();
@@ -60,6 +63,10 @@ namespace BehaviourInject
 			_eventManager.AddTransmitter(this);
 
 			FindAndResolveDependencies();
+
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.InjectorsCount++;
+#endif
 		}
 
 
@@ -88,6 +95,11 @@ namespace BehaviourInject
         public void FindAndResolveDependencies()
         {
             MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
+
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.RecipientCount += components.Length;
+#endif
+
 			_componentsCache = components;
 
 			foreach (MonoBehaviour component in components)
@@ -164,6 +176,11 @@ namespace BehaviourInject
 			}
 			_eventManager = null;
 			_context = null;
+
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.InjectorsCount--;
+			BinjectDiagnostics.RecipientCount -= _componentsCache.Length;
+#endif
 		}
 
 

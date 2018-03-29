@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+#if BINJECT_DIAGNOSTICS
+using BehaviourInject.Diagnostics;
+#endif
 
 namespace BehaviourInject.Internal
 {
@@ -30,6 +33,11 @@ namespace BehaviourInject.Internal
 			{
 				injections = GenerateInjectionsFor(type);
 				_behavioirInjections[type] = injections;
+
+#if BINJECT_DIAGNOSTICS
+				BinjectDiagnostics.CachedTypes++;
+				BinjectDiagnostics.CachedInjections += injections.Length;
+#endif
 			}
 
 			return injections;
@@ -97,6 +105,11 @@ namespace BehaviourInject.Internal
 			{
 				handlers = GenerateEventHandlers(target);
 				_blindEvents[target] = handlers;
+
+#if BINJECT_DIAGNOSTICS
+				BinjectDiagnostics.CachedEventTargets++;
+				BinjectDiagnostics.CachedEventHandlers += handlers.Length;
+#endif
 			}
 
 			return handlers;

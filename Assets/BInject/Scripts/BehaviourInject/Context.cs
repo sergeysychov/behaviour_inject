@@ -26,6 +26,9 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using BehaviourInject.Internal;
+#if BINJECT_DIAGNOSTICS
+using BehaviourInject.Diagnostics;
+#endif
 
 namespace BehaviourInject
 {
@@ -211,10 +214,14 @@ namespace BehaviourInject
 			ThrowIfRegistered(type);
 			_dependencies.Add(type, dependency);
 			_listedDependencies.Add(dependency);
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.DependenciesCount++;
+			BinjectDiagnostics.RecipientCount++;
+#endif
 		}
 
 
-        private void ThrowIfNull(object target, string argName)
+		private void ThrowIfNull(object target, string argName)
         {
             if (target == null)
                 throw new BehaviourInjectException(argName + " is null");
@@ -284,6 +291,9 @@ namespace BehaviourInject
 				var newEntry = new CommandEntry(eventType);
 				_commandsByEvent.Add(eventType, newEntry);
 				_commands.Add(newEntry);
+#if BINJECT_DIAGNOSTICS
+				BinjectDiagnostics.CommandsCount++;
+#endif
 			}
 
 			CommandEntry entry = _commandsByEvent[eventType];
@@ -411,6 +421,12 @@ namespace BehaviourInject
 				ContextRegistry.UnregisterContext(_name);
 
 			DisposeDependencies();
+
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.DependenciesCount -= _listedDependencies.Count;
+			BinjectDiagnostics.RecipientCount -= _listedDependencies.Count;
+			BinjectDiagnostics.CommandsCount -= _commands.Count;
+#endif
 
 			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
 			EventManager.ClearParent();

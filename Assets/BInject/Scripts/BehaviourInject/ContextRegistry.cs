@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using BehaviourInject.Diagnostics;
 
 namespace BehaviourInject.Internal
 {
@@ -45,6 +46,9 @@ namespace BehaviourInject.Internal
 				throw new ContextCreationException(String.Format("Context with name \"{0}\" already exists!", name));
 
             _contextRegistry.Add(name, context);
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.ContextCount++;
+#endif
         }
 
 
@@ -64,10 +68,13 @@ namespace BehaviourInject.Internal
                 throw new BehaviourInjectException(String.Format("Context \"{0}\" already removed or never existed!", name));
 
             _contextRegistry.Remove(name);
-        }
+#if BINJECT_DIAGNOSTICS
+			BinjectDiagnostics.ContextCount--;
+#endif
+		}
 
 
-        public static Context GetContext(string name)
+		public static Context GetContext(string name)
 		{
 			if (!_contextRegistry.ContainsKey(name))
                 throw new BehaviourInjectException(String.Format("Context with name \"{0}\" does not exist!", name));
