@@ -1,10 +1,10 @@
 # BInject #
 ## Behaviour Inject for Unity3d ##
 
-This is lightweight and easy to use inversion of control tool for Unity3d. There are few script files with approximately 400 lines of code. Yet it provides crutial features of reflective dependency injection:
+This is lightweight and easy to use dependency injection tool for Unity3d. There are only few script files with relatively little amount of code. Yet it provides crutial features of reflective dependency injection:
 - resolving interfaces;
 - injection to MonoBehaviour properties, fields or methods;
-- hierarchy autocomposition with constructor injection;
+- class autocomposition with constructor injection;
 - factories;
 - event injection;
 
