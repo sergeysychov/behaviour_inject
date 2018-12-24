@@ -87,6 +87,7 @@ namespace BehaviourInject
 			EventManager = new EventManager();
 			EventManager.AddTransmitter(this);
 			RegisterDependency<IEventDispatcher>(EventManager);
+			RegisterDependency<IInstantiator>(new LocalInstantiator(this));
 
 			_parentContext = ParentContextStub.STUB;
 		}
@@ -315,6 +316,12 @@ namespace BehaviourInject
 
 			return dependency;
 		}
+
+
+	    public T Resolve<T>()
+	    {
+		    return (T) Resolve(typeof(T));
+	    }
 		
 
 		public bool TryResolve(Type resolvingType, out object dependency)
@@ -328,8 +335,8 @@ namespace BehaviourInject
 
 			if (hierarchyDepthCount > MAX_HIERARCHY_DEPTH)
 				throw new BehaviourInjectException(String.Format("You have reached maximum hierarchy depth ({0}). Probably recursive dependencies are occured in {1}", MAX_HIERARCHY_DEPTH, resolvingType.FullName));
-			else
-				hierarchyDepthCount++;
+			
+			hierarchyDepthCount++;
 
 			object parentDependency;
 			if (_dependencies.ContainsKey(resolvingType))
