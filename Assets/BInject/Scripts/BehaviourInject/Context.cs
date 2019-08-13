@@ -280,6 +280,33 @@ namespace BehaviourInject
 			InsertDependency(dependencyType, new SingleAutocomposeDependency(concreteType));
 			return this;
 		}
+		
+		
+		public Context RegisterTypeAsMultiple<T>(params Type[] types)
+		{
+			Type concreteType = typeof(T);
+			IDependency dependency = new SingleAutocomposeDependency(concreteType);
+			int length = types.Length;
+			
+			if(length == 0)
+				throw new BehaviourInjectException("register types array shouldn't be empty");
+			
+			for (int i = 0; i < length; i++)
+			{
+				Type dependencyType = types[i];
+				ThrowIfNotAncestor(concreteType, dependencyType);
+				ThrowIfRegistered(dependencyType);
+				InsertDependency(dependencyType, dependency);	
+			}
+			return this;
+		}
+
+
+		private void ThrowIfNotAncestor(Type descent, Type ancestor)
+		{
+			if (!ancestor.IsAssignableFrom(descent))
+				throw new BehaviourInjectException("Can not register " + descent.FullName + " as " + ancestor.FullName + ": no ancestry");
+		}
 
 
 		public Context RegisterCommand<EventT, CommandT>() where CommandT : ICommand
