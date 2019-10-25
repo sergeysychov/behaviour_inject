@@ -8,3 +8,7 @@
 /.vs/UnityBehaviourInject/v14
 /*.csproj
 /.vs/UnityBehaviourInject/v15/.suo
+/.idea
+/.vs
+/Assets/Plugins/Editor/JetBrains
+/Assets/Plugins/Editor/JetBrains.meta

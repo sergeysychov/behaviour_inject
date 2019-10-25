@@ -112,7 +112,14 @@ namespace BehaviourInject
         }
 
 
-        public void InjectToBehaviour(MonoBehaviour behaviour)
+        public void DelayedInject(MonoBehaviour behaviour)
+        {
+	        _componentsCache = null;
+	        InjectToBehaviour(behaviour);
+        }
+
+        
+        private void InjectToBehaviour(MonoBehaviour behaviour)
         {
 			Type componentType = behaviour.GetType();
 
@@ -196,7 +203,7 @@ namespace BehaviourInject
     public static class InjectorMonobehaviourExtensions {
         public static void ForceInject(this MonoBehaviour behaviour)
         {
-            behaviour.SendMessage("InjectToBehaviour", behaviour, SendMessageOptions.DontRequireReceiver);
+            behaviour.SendMessage("DelayedInject", behaviour, SendMessageOptions.DontRequireReceiver);
 		}
     }
 }

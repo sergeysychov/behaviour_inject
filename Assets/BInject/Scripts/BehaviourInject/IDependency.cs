@@ -10,12 +10,16 @@ namespace BehaviourInject.Internal
 		object Resolve(Context context, int depth);
 		void Dispose();
 		bool IsSingle { get; }
+		bool AlreadyNotified { get; set; }
 	}
 
 
 	public class SingleDependency : IDependency
 	{
 		private object _dependency;
+		
+		public bool AlreadyNotified { get; set; }
+		
 		public SingleDependency(object dependency)
 		{
 			if (dependency == null)
@@ -47,6 +51,9 @@ namespace BehaviourInject.Internal
 	{
 		private object _dependency;
 		private Type _type;
+		
+		public bool AlreadyNotified { get; set; }
+		
 		public SingleAutocomposeDependency(Type type)
 		{
 			if (type == null)
@@ -79,6 +86,8 @@ namespace BehaviourInject.Internal
 	{
 		private IDependency _factorySingle;
 
+		public bool AlreadyNotified { get; set; }
+		
 		public FactoryDependency(IDependency factory)
 		{
 			_factorySingle = factory;

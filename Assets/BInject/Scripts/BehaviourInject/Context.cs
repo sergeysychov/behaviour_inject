@@ -26,6 +26,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using BehaviourInject.Internal;
+
 #if BINJECT_DIAGNOSTICS
 using BehaviourInject.Diagnostics;
 #endif
@@ -113,14 +114,19 @@ namespace BehaviourInject
 
 		public void TransmitEvent(object evnt)
 		{
+			int count = _listedDependencies.Count;
+			for (int i = 0; i < count; i++)
+				_listedDependencies[i].AlreadyNotified = false;
+			
 			Type eventType = evnt.GetType();
 			for (int i = 0; i < _listedDependencies.Count; i++)
 			{
 				IDependency dependency = _listedDependencies[i];
-				if (dependency.IsSingle)
+				if (dependency.IsSingle && !dependency.AlreadyNotified)
 				{
 					object target = dependency.Resolve(this, 0);
 					InjectEventTo(target, eventType, evnt);
+					dependency.AlreadyNotified = true;
 				}
 			}
 
