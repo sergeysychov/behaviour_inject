@@ -122,7 +122,9 @@ namespace BehaviourInject
 			for (int i = 0; i < _listedDependencies.Count; i++)
 			{
 				IDependency dependency = _listedDependencies[i];
-				if (dependency.IsSingle && !dependency.AlreadyNotified)
+				if (dependency.IsSingle 
+				    && ReflectionCache.GetEventHandlersFor(dependency.DependencyType).Length > 0
+					&& !dependency.AlreadyNotified)
 				{
 					object target = dependency.Resolve(this, 0);
 					InjectEventTo(target, eventType, evnt);
@@ -345,7 +347,7 @@ namespace BehaviourInject
 			object dependency;
 
 			if(! TryResolve(resolvingType, out dependency))
-				throw new BehaviourInjectException(String.Format("Can not resolve. Type {0} not registered in this context!", resolvingType.FullName));
+				throw new BehaviourInjectException($"Can not resolve. Type {resolvingType.FullName} not registered in {_name} context!");
 
 			return dependency;
 		}
@@ -399,7 +401,7 @@ namespace BehaviourInject
 
 				object dependency;
 				if (!TryResolve(argumentType, out dependency, hierarchyDepthCount))
-					throw new BehaviourInjectException(String.Format("Could not resolve {0} in context {1}. Probably it's not registered", argumentType.FullName, _name));
+					throw new BehaviourInjectException(String.Format("Could not resolve {0} for {2} in context {1}. Probably it's not registered", argumentType.FullName, _name, resolvingType.FullName));
 
 				arguments[i] = dependency;
             }
