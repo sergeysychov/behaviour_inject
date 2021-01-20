@@ -47,13 +47,13 @@ namespace BehaviourInject
 
 	public static class AttributeUtils
 	{
-		public static bool IsMarked<T>(MemberInfo member)
+		public static bool IsMarked<T>(ICustomAttributeProvider member)
 		{
 			object[] attributes = member.GetCustomAttributes(typeof(T), false);
 			return attributes.Length > 0;
 		}
 
-		public static bool TryGetAttribute<T>(MemberInfo member, out T t)
+		public static bool TryGetAttribute<T>(ICustomAttributeProvider member, out T t)
 		{
 			object[] attributes = member.GetCustomAttributes(typeof(T), false);
 			bool hasAttributes = attributes.Length > 0;

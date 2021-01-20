@@ -399,9 +399,18 @@ namespace BehaviourInject
                 ParameterInfo parameter = parameters[i];
                 Type argumentType = parameter.ParameterType;
 
-				object dependency;
-				if (!TryResolve(argumentType, out dependency, hierarchyDepthCount))
-					throw new BehaviourInjectException(String.Format("Could not resolve {0} for {2} in context {1}. Probably it's not registered", argumentType.FullName, _name, resolvingType.FullName));
+                object dependency;
+                if (AttributeUtils.IsMarked<CreateAttribute>(parameter))
+                {
+	                dependency = AutocomposeDependency(argumentType, hierarchyDepthCount);
+                }
+                else
+                {
+	                if (!TryResolve(argumentType, out dependency, hierarchyDepthCount))
+		                throw new BehaviourInjectException(String.Format(
+			                "Could not resolve {0} for {2} in context {1}. Probably it's not registered",
+			                argumentType.FullName, _name, resolvingType.FullName));
+                }
 
 				arguments[i] = dependency;
             }
