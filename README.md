@@ -228,7 +228,7 @@ public class Foo
     
     public void OtherTimeFuntion()
     {
-        Foo newlyComposedObject = _instantiator.New<Foo>();
+        Bar newlyComposedObject = _instantiator.New<Bar>();
     }
 }
 ```
