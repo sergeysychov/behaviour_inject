@@ -49,8 +49,7 @@ namespace BehaviourInject
 	{
 		public static bool IsMarked<T>(ICustomAttributeProvider member)
 		{
-			object[] attributes = member.GetCustomAttributes(typeof(T), false);
-			return attributes.Length > 0;
+			return member.IsDefined(typeof(T), false);
 		}
 
 		public static bool TryGetAttribute<T>(ICustomAttributeProvider member, out T t)

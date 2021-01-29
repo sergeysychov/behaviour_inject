@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace BehaviourInject.Internal
@@ -7,51 +8,55 @@ namespace BehaviourInject.Internal
 	{
 		void Inject(object target, Context context);
 	}
-
+	
 
 	public class AbstractInjecton {
 
-		private Mode _mode;
-
-		public AbstractInjecton(MemberInfo info)
+		protected ResolveMode GetResolveMode(ICustomAttributeProvider attributeProvider)
 		{
-			_mode = AttributeUtils.IsMarked<CreateAttribute>(info) ? Mode.Create : Mode.Inject;
+			if (AttributeUtils.IsMarked<CreateAttribute>(attributeProvider))
+				return ResolveMode.Create;
+			if (AttributeUtils.IsMarked<InjectAttribute>(attributeProvider))
+				return ResolveMode.Inject;
+			return ResolveMode.Unspecified;
 		}
 
-		protected object GetDependency(Type type, Context context)
+		
+		protected object GetDependency(Type type, Context context, ResolveMode resolveMode)
 		{
-			if (_mode == Mode.Create)
+			if (resolveMode == ResolveMode.Create)
 			{
 				return context.AutocomposeDependency(type, 0);
 			}
-			else
-			{
-				return context.Resolve(type);
-			}
+			return context.Resolve(type);
 		}
 
-		private enum Mode
+
+		protected enum ResolveMode
 		{
+			Inject,
 			Create,
-			Inject
+			Unspecified
 		}
 	}
 
 
 	public class PropertyInjection : AbstractInjecton, IMemberInjection
 	{
-		private PropertyInfo _propertyInfo;
-		private Type _dependencyType;
+		private readonly PropertyInfo _propertyInfo;
+		private readonly Type _dependencyType;
+		private readonly ResolveMode _resolveMode;
 
-		public PropertyInjection(PropertyInfo info) : base(info)
+		public PropertyInjection(PropertyInfo info)
 		{
 			_propertyInfo = info;
 			_dependencyType = info.PropertyType;
+			_resolveMode = GetResolveMode(_propertyInfo);
 		}
 		
 		public void Inject(object target, Context context)
 		{
-			object dependency = GetDependency(_dependencyType, context);
+			object dependency = GetDependency(_dependencyType, context, _resolveMode);
 
 			if (_propertyInfo.GetValue(target, null) != null)
 				throw new BehaviourInjectException(String.Format("Property {0} to inject is already contains something!", _propertyInfo.Name));
@@ -61,19 +66,20 @@ namespace BehaviourInject.Internal
 
 	public class FieldInjection : AbstractInjecton, IMemberInjection
 	{
-		private FieldInfo _fieldInfo;
-		private Type _dependencyType;
+		private readonly FieldInfo _fieldInfo;
+		private readonly Type _dependencyType;
+		private readonly ResolveMode _resolveMode;
 
 		public FieldInjection(FieldInfo info)
-			: base(info)
 		{
 			_fieldInfo = info;
 			_dependencyType = info.FieldType;
+			_resolveMode = GetResolveMode(_fieldInfo);
 		}
 		
 		public void Inject(object target, Context context)
 		{
-			object dependency = GetDependency(_dependencyType, context);
+			object dependency = GetDependency(_dependencyType, context, _resolveMode);
 
 			if (_fieldInfo.GetValue(target) != null)
 				throw new BehaviourInjectException(String.Format("Field {0} to inject is already contains something!", _fieldInfo.Name));
@@ -87,19 +93,27 @@ namespace BehaviourInject.Internal
 		private MethodInfo _methodInfo;
 
 		private Type[] _dependencyTypes;
+		private ResolveMode[] _resolveModes;
 		private object[] _invokationArguments;
 
 		public MethodInjection(MethodInfo info)
-			: base(info)
 		{
 			_methodInfo = info;
+			ResolveMode methodResolveMode = GetResolveMode(_methodInfo);
 			ParameterInfo[] arguments = _methodInfo.GetParameters();
 			int argumentCount = arguments.Length;
+			
 			_dependencyTypes = new Type[argumentCount];
 			_invokationArguments = new object[argumentCount];
+			_resolveModes = new ResolveMode[argumentCount];
+			
 			for (int i = 0; i < argumentCount; i++)
 			{
-				_dependencyTypes[i] = arguments[i].ParameterType;
+				ParameterInfo argument = arguments[i];
+				_dependencyTypes[i] = argument.ParameterType;
+				ResolveMode resolveMode = GetResolveMode(argument);
+				if (resolveMode == ResolveMode.Unspecified) resolveMode = methodResolveMode;
+				_resolveModes[i] = resolveMode;
 			}
 		}
 
@@ -108,7 +122,8 @@ namespace BehaviourInject.Internal
 			for (int i = 0; i < _dependencyTypes.Length; i++)
 			{
 				Type dependencyType = _dependencyTypes[i];
-				_invokationArguments[i] = GetDependency(dependencyType, context);
+				ResolveMode resolveMode = _resolveModes[i];
+				_invokationArguments[i] = GetDependency(dependencyType, context, resolveMode);
 			}
 
 			_methodInfo.Invoke(target, _invokationArguments);
