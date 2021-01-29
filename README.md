@@ -204,7 +204,7 @@ public class Foo
         ....
     }
     
-    //You can use it in constructor
+    //You can use it in constructor if Foo is automatically composed by context.
     public Foo(Analytics analytics, [Create] Connection connection)
     {
         ....
