@@ -19,6 +19,7 @@ BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows inje
 * <a href="#multiple">Multiple contexts</a>
 * <a href="#interface">Interfaces</a>
 * <a href="#autocompose">Autocomposition</a>
+* <a href="#create">Create instead of new</a>
 * <a href="#factories">Factories</a>
 * <a href="#events">Events</a>
 * <a href="#commands">Commands</a>
@@ -172,6 +173,65 @@ public class Connection
 ```
 
 Autocomposition creates only one single object of type, keeps it and use for every appropriate injection in current context. If you need to create object for each injection use Factories described below.
+
+## <a id="create"></a> Create instead of new
+<a href="#table">Back to contents</a>
+
+Sometimes there's need to create local object using a variety of context-related dependencies. One shouldn't resolve this dependencies to create it manually. It would be better to use [Create] attribute. It means that denoted object type should not bee looked among dependencies registered at context but immidiately created using them. In can be both used in members and constructors. Here's the exambple.
+
+```csharp
+public class Foo
+{
+    //Instead of doing this
+    [Inject]
+    public void SetDependencies(Settings settings, Analytics analytics, Cryptography cryptography)
+    {
+    	Connection connection = new Connection(settings, analytics, cryptography);
+        ....
+    }
+    
+    //Better to do this
+    [Create]
+    public void SetDependencies(Connection connection)
+    {
+        ....
+    }
+    
+    //Or this if you need both
+    [Inject]
+    public void SetDependencies(Analytics analytics, [Create] Connection connection)
+    {
+        ....
+    }
+    
+    //You can use it in constructor if Foo is automatically composed by context.
+    public Foo(Analytics analytics, [Create] Connection connection)
+    {
+        ....
+    }
+    
+}
+```
+
+The other option is to utilize default dependency called IInstantiator. It's kinda dirty because slightly violates "no service locators" rule but essintially it doesn't give access to any dependency. It just creates new object with current context behaving like universal factory. IInstantiator is useful when object need to be crated not at construction or injection time but at some other uncertain moment of program execution.
+
+```csharp
+public class Foo
+{
+    private IInstantiator _instantiator;
+
+    [Inject]
+    public void SetDependencies(IInstantiator instantiator)
+    {
+        _instantiator = instantiator;
+    }
+    
+    public void OtherTimeFuntion()
+    {
+        Bar newlyComposedObject = _instantiator.New<Bar>();
+    }
+}
+```
 
 ## <a id="factories"></a> Factories
 <a href="#table">Back to contents</a>
