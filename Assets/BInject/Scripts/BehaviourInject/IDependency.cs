@@ -18,7 +18,7 @@ namespace BehaviourInject.Internal
 	public class SingleDependency : IDependency
 	{
 		private object _dependency;
-		
+
 		public bool AlreadyNotified { get; set; }
 
 		public SingleDependency(object dependency)
@@ -45,9 +45,12 @@ namespace BehaviourInject.Internal
 		{
 			get { return true; }
 		}
-		public Type DependencyType => _dependency.GetType();
-	}
 
+		public Type DependencyType
+		{
+			get { return _dependency.GetType(); }
+		}
+	}
 
 	public class SingleAutocomposeDependency : IDependency
 	{
@@ -81,8 +84,11 @@ namespace BehaviourInject.Internal
 		{
 			get { return true; }
 		}
-		
-		public Type DependencyType => _type;
+
+		public Type DependencyType
+		{
+			get { return _type; }
+		}
 	}
 
 
@@ -113,6 +119,9 @@ namespace BehaviourInject.Internal
 			get { return false; }
 		}
 		
-		public Type DependencyType => typeof(T);
+		public Type DependencyType
+		{
+			get { return typeof(T); }
+		}
 	}
 }

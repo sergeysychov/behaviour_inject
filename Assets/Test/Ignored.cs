@@ -13,7 +13,7 @@ namespace TestIgonreNamespace
 
 		void Start()
 		{
-			Assert.IsNull(Dependency, "ignore fullname");
+			Assert.IsNull(Dependency, "ignore namespace");
 		}
 	}
 }

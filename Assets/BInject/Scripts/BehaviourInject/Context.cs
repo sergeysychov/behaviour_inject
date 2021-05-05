@@ -347,7 +347,8 @@ namespace BehaviourInject
 			object dependency;
 
 			if(! TryResolve(resolvingType, out dependency))
-				throw new BehaviourInjectException($"Can not resolve. Type {resolvingType.FullName} not registered in {_name} context!");
+				throw new BehaviourInjectException(
+					String.Format("Can not resolve. Type {0} not registered in {1} context!", resolvingType.FullName, _name));
 
 			return dependency;
 		}
