@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+git@github.com:Temka193/behaviour_inject.git"
+    "url": "git+git@github.com:sergeysychov/behaviour_inject.git"
   },
   "src": "Assets/BInject",
   "author": "Sergey Sychov <> (https://github.com/sergeysychov)",
