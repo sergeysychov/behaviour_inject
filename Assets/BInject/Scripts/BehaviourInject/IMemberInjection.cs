@@ -26,7 +26,7 @@ namespace BehaviourInject.Internal
 		{
 			if (resolveMode == ResolveMode.Create)
 			{
-				return context.AutocomposeDependency(type, 0);
+				return context.AutocomposeDependency(type);
 			}
 			return context.Resolve(type);
 		}

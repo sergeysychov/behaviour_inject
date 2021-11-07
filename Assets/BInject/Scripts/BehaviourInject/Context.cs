@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Text;
 using BehaviourInject.Internal;
 
 #if BINJECT_DIAGNOSTICS
@@ -42,6 +43,7 @@ namespace BehaviourInject
 
         private Dictionary<Type, IDependency> _dependencies;
 		private List<IDependency> _listedDependencies;
+		private Stack<Type> _compositionStack;
 
 		private List<CommandEntry> _commands;
 		private Dictionary<Type, CommandEntry> _commandsByEvent;
@@ -81,6 +83,7 @@ namespace BehaviourInject
 			_isGlobal = isGlobal;
 			_dependencies = new Dictionary<Type, IDependency>(32);
 			_listedDependencies = new List<IDependency>(32);
+			_compositionStack = new Stack<Type>(16);
 
 			_commands = new List<CommandEntry>(32);
 			_commandsByEvent = new Dictionary<Type, CommandEntry>(32);
@@ -126,7 +129,7 @@ namespace BehaviourInject
 				    && ReflectionCache.GetEventHandlersFor(dependency.DependencyType).Length > 0
 					&& !dependency.AlreadyNotified)
 				{
-					object target = dependency.Resolve(this, 0);
+					object target = dependency.Resolve(this);
 					InjectEventTo(target, eventType, evnt);
 					dependency.AlreadyNotified = true;
 				}
@@ -168,7 +171,7 @@ namespace BehaviourInject
 			for (int i = 0; i < commands.Count; i++)
 			{
 				Type commandType = commands[i];
-				ICommand command = (ICommand)AutocomposeDependency(commandType, 0);
+				ICommand command = (ICommand)AutocomposeDependency(commandType);
 				InjectEventTo(command, eventType, evt);
 				
 				try
@@ -376,7 +379,7 @@ namespace BehaviourInject
 
 			object parentDependency;
 			if (_dependencies.ContainsKey(resolvingType))
-				dependency = _dependencies[resolvingType].Resolve(this, hierarchyDepthCount);
+				dependency = _dependencies[resolvingType].Resolve(this);
 			else if (_parentContext.TryResolve(resolvingType, out parentDependency))
 				dependency = parentDependency;
 			else
@@ -389,8 +392,11 @@ namespace BehaviourInject
 		}
 
 
-		public object AutocomposeDependency(Type resolvingType, int hierarchyDepthCount)
+		public object AutocomposeDependency(Type resolvingType)
         {
+	        CheckAgainstCompositionStack(resolvingType);
+	        _compositionStack.Push(resolvingType);
+	        
             ConstructorInfo constructor = FindAppropriateConstructor(resolvingType);
             ParameterInfo[] parameters = constructor.GetParameters();
             object[] arguments = new object[parameters.Length];
@@ -403,11 +409,11 @@ namespace BehaviourInject
                 object dependency;
                 if (AttributeUtils.IsMarked<CreateAttribute>(parameter))
                 {
-	                dependency = AutocomposeDependency(argumentType, hierarchyDepthCount);
+	                dependency = AutocomposeDependency(argumentType);
                 }
                 else
                 {
-	                if (!TryResolve(argumentType, out dependency, hierarchyDepthCount))
+	                if (!TryResolve(argumentType, out dependency))
 		                throw new BehaviourInjectException(String.Format(
 			                "Could not resolve {0} for {2} in context {1}. Probably it's not registered",
 			                argumentType.FullName, _name, resolvingType.FullName));
@@ -422,8 +428,24 @@ namespace BehaviourInject
 			for (int i = 0; i < injections.Length; i++)
 				injections[i].Inject(result, this);
 
+			_compositionStack.Pop();
+			
             return result;
         }
+
+
+		private void CheckAgainstCompositionStack(Type type)
+		{
+			if (_compositionStack.Contains(type))
+			{
+				StringBuilder text = new StringBuilder(128);
+				text.Append("Cycled dependency occured:");
+				foreach (Type stackedType in _compositionStack)
+					text.Append(stackedType.Name).Append("->");
+				text.Append(type.Name);
+				throw new BehaviourInjectException(text.ToString());
+			}
+		}
 
 
         private ConstructorInfo FindAppropriateConstructor(Type resolvingType)
@@ -459,7 +481,7 @@ namespace BehaviourInject
 		{
 			foreach (IDependency dependency in _listedDependencies)
 			{
-				dependency.Resolve(this, 0);
+				dependency.Resolve(this);
 			}
 			return this;
 		}

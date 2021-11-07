@@ -15,7 +15,7 @@ namespace BehaviourInject
 		
 		public T New<T>()
 		{
-			return (T) _containerContext.AutocomposeDependency(typeof(T), 0);
+			return (T) _containerContext.AutocomposeDependency(typeof(T));
 		}
 	}
 

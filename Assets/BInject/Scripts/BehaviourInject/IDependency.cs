@@ -7,7 +7,7 @@ namespace BehaviourInject.Internal
 {
 	public interface IDependency
 	{
-		object Resolve(Context context, int depth);
+		object Resolve(Context context);
 		void Dispose();
 		bool IsSingle { get; }
 		bool AlreadyNotified { get; set; }
@@ -28,7 +28,7 @@ namespace BehaviourInject.Internal
 			_dependency = dependency;
 		}
 
-		public object Resolve(Context context, int depth)
+		public object Resolve(Context context)
 		{
 			return _dependency;
 		}
@@ -66,10 +66,10 @@ namespace BehaviourInject.Internal
 			_type = type;
 		}
 
-		public object Resolve(Context context, int depth)
+		public object Resolve(Context context)
 		{
 			if (_dependency == null)
-				_dependency = context.AutocomposeDependency(_type, depth);
+				_dependency = context.AutocomposeDependency(_type);
 			return _dependency;
 		}
 
@@ -103,9 +103,9 @@ namespace BehaviourInject.Internal
 			_factorySingle = factory;
 		}
 
-		public object Resolve(Context context, int depth)
+		public object Resolve(Context context)
 		{
-			return ((DependencyFactory<T>)_factorySingle.Resolve(context, depth)).Create();
+			return ((DependencyFactory<T>)_factorySingle.Resolve(context)).Create();
 		}
 
 
