@@ -287,7 +287,6 @@ namespace BehaviourInject
 		{
 			Type dependencyType = typeof(IT);
 			Type concreteType = typeof(T);
-			ThrowIfRegistered(dependencyType);
 			InsertDependency(dependencyType, new SingleAutocomposeDependency(concreteType));
 			return this;
 		}
@@ -306,7 +305,6 @@ namespace BehaviourInject
 			{
 				Type dependencyType = types[i];
 				ThrowIfNotAncestor(concreteType, dependencyType);
-				ThrowIfRegistered(dependencyType);
 				InsertDependency(dependencyType, dependency);	
 			}
 			return this;
