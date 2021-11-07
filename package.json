@@ -1,0 +1,18 @@
+{
+  "name": "com.sergeysychov.behaviour_inject",
+  "displayName": "BInject",
+  "description": "Behaviour Inject for Unity3d.\nThis is lightweight and easy to use dependency injection tool for Unity3d. There are only few script files with relatively little amount of code. Yet it provides crutial features of reflective dependency injection:\n\n - resolving interfaces;\n - injection to MonoBehaviour properties, fields or methods;\n - class autocomposition with constructor injection;\n - factories;\n - event injection;",
+  "version": "1.0.6",
+  "unity": "2019.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+git@github.com:sergeysychov/behaviour_inject.git"
+  },
+  "src": "Assets/BInject",
+  "author": "Sergey Sychov <> (https://github.com/sergeysychov)",
+  "editorOnly": false,
+  "upmSupport": true,
+  "dependencies": {
+  }
+}
