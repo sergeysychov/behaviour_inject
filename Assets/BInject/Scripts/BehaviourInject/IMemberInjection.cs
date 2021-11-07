@@ -94,7 +94,7 @@ namespace BehaviourInject.Internal
 
 		private Type[] _dependencyTypes;
 		private ResolveMode[] _resolveModes;
-		private object[] _invokationArguments;
+		private object[] _invocationArguments;
 
 		public MethodInjection(MethodInfo info)
 		{
@@ -104,7 +104,7 @@ namespace BehaviourInject.Internal
 			int argumentCount = arguments.Length;
 			
 			_dependencyTypes = new Type[argumentCount];
-			_invokationArguments = new object[argumentCount];
+			_invocationArguments = new object[argumentCount];
 			_resolveModes = new ResolveMode[argumentCount];
 			
 			for (int i = 0; i < argumentCount; i++)
@@ -123,10 +123,10 @@ namespace BehaviourInject.Internal
 			{
 				Type dependencyType = _dependencyTypes[i];
 				ResolveMode resolveMode = _resolveModes[i];
-				_invokationArguments[i] = GetDependency(dependencyType, context, resolveMode);
+				_invocationArguments[i] = GetDependency(dependencyType, context, resolveMode);
 			}
 
-			_methodInfo.Invoke(target, _invokationArguments);
+			_methodInfo.Invoke(target, _invocationArguments);
 		}
 	}
 }
