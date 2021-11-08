@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
 
 namespace BehaviourInject
 {
@@ -17,11 +15,17 @@ namespace BehaviourInject
 		{
 			return (T) _containerContext.AutocomposeDependency(typeof(T));
 		}
+		
+		public object New(Type t)
+		{
+			return _containerContext.AutocomposeDependency(t);
+		}
 	}
 
 
 	public interface IInstantiator
 	{
 		T New<T>();
+		object New(Type t);
 	}
 }
