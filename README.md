@@ -83,7 +83,7 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 
 ### Core concept ###
 
-It all works just like this. Right after you've created Context it is added to global ContextRegistry. When Injector awakes it checks ContextRegistry for existing specified Context. Then it lists all current components on it's gameObject and in each component looks for [Inject]-marked fields, properties and setters. For each [Inject] member it resolves corresponding Type object from context and sets this object to member. In the end of that cycle, before all other scripts are awaken, they have their dependencies already in place, ready to operate.
+Right after you've created Context it is added to global ContextRegistry. When Injector awakes it checks if specified Context exists. Then it lists all [Inject]-marked fields, properties and setters in all scripts in current GameObject. For each found member it resolves corresponding object from context and sets this object to this member. As a result all other scripts already have their dependencies in place on awakening.
 
 ![alt text](Doc/core_concept.png)
 
