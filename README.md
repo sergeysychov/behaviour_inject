@@ -1,7 +1,7 @@
 # BInject #
 ## Behaviour Inject for Unity3d ##
 
-This is lightweight and easy to use dependency injection tool for Unity3d. There are only few script files with relatively little amount of code. Yet it provides crutial features of reflective dependency injection:
+Lightweight fast and easy to use DI tool for Unity3d. Small amount of code and all important features:
 - resolving interfaces;
 - injection to MonoBehaviour properties, fields or methods;
 - class autocomposition with constructor injection;
@@ -9,11 +9,17 @@ This is lightweight and easy to use dependency injection tool for Unity3d. There
 - event injection;
 
 ### What is it for? ###
-Average project eventually meets difficulties with myriads of links and connections between classes. Especially in Unity, where you have no strict composition root, MonoBehaviours in most cases has independent lifecycles and you have to use either singletons or "FindObjectsOfType" stuff to connect things to each other creating mess of links and mutual dependencies. Code comes really hard to support and develop.
 
-This is where Dependency Injection comes to help. You just define core classes and interfaces for you logic, mark required links with [Inject] and then DI does all the magic linking things to each other (with reflection). No headache with passing tons of instances through composition tree, uncontrollable dirty singletons or creating all-mighty God-objects that owns and controls everything. Classes should know only things that they really need. You are free to separate, encapsulate, create interfaces, use polymorphism and have full conrol over links in your logic in simple and elegant way.
+Dependency injection significantly enhances ability to develop, support and refactor a codebase. It organizes creation and accessing objects in a project. When links between objects become messy and classes overweighted it is time to use DI which relieves code from using omnipresent singletons, "FindObjectOfType", direct inspector-linking and other dirty techniques.
 
-BehaviourInject is done for Unit3d to preserve familiar pipeline. It allows injections into MonoBehaviours without direct resolving. You shouldn't change the way you creating scene or instancing prefabs, almost everything will work in the same way, but requested dependencies will be there with no effort!
+Just define core classes and interfaces required by game logic, mark some methods with [Inject] and then DI does all the magic linking things to each other (with reflection). Then classes will know only things that they really need. One is free to separate, encapsulate, create interfaces, use polymorphism and have full control over links in a logic in simple and elegant way.
+
+### Core feature ###
+
+BInject preserves natural Unity3d scripting and instancing pipeline. It is its core concept and major difference from other DI tools. It might be added even to long time supported project almost without modifications. 
+
+Only thing required is additional component "Injector" added to GameObject and initiated in prior along other scripts. All the rest works fine in plain old way.
+
 <a id="table"></a>
 * <a href="#howto">How to</a>
 * <a href="#multiple">Multiple contexts</a>
