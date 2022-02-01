@@ -183,7 +183,7 @@ Autocomposition creates only one single object of type, keeps it and use for eve
 ## <a id="create"></a> Create instead of new
 <a href="#table">Back to contents</a>
 
-Sometimes there's need to create local object using a variety of context-related dependencies. One shouldn't resolve this dependencies to create it manually. It would be better to use [Create] attribute. It means that denoted object type should not bee looked among dependencies registered at context but immidiately created using them. In can be both used in members and constructors. Here's the exambple.
+Sometimes there's need to create local object using a variety of context-related dependencies. One shouldn't resolve this dependencies to create it manually. It would be better to use [Create] attribute. It means that denoted object type should not bee looked among dependencies registered at context but immidiately created using them. It can be both used in members and constructors. Here's the exambple.
 
 ```csharp
 public class Foo
@@ -244,7 +244,7 @@ public class Foo
 
 In case if you needed specific logic of object creation you may use factories. For example if you need to create object at some point at runtime. Or create object each time IoC resolving this type.
 
-Factories also can be eather defined directly in code, or created by autocomposition.
+Factories also can be either defined directly in code, or created by autocomposition.
 
 ```csharp
 public class InitiatorBehavour : MonoBehaviour
