@@ -18,7 +18,7 @@ Just define core classes and interfaces required by game logic, mark some method
 
 BInject preserves natural Unity3d scripting and instancing pipeline. It is its core concept and major difference from other DI tools. It might be added even to long time supported project almost without modifications. 
 
-Only thing required is additional component "Injector" added to GameObject and initiated in prior along other scripts. All the rest works fine in plain old way and takes almost no processor time.
+Only thing required is component "Injector" added to GameObject along other scripts. All the rest works fine in plain old way and takes almost no processor time.
 
 <a id="table"></a>
 * <a href="#howto">How to</a>
