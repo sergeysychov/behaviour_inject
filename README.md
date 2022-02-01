@@ -1,7 +1,7 @@
 # BInject #
 ## Behaviour Inject for Unity3d ##
 
-Lightweight fast and easy to use DI tool for Unity3d. Small amount of code and all important features:
+Performant lightweight and easy to use DI tool for Unity3d. Small amount of code and all important features:
 - resolving interfaces;
 - injection to MonoBehaviour properties, fields or methods;
 - class autocomposition with constructor injection;
@@ -18,7 +18,7 @@ Just define core classes and interfaces required by game logic, mark some method
 
 BInject preserves natural Unity3d scripting and instancing pipeline. It is its core concept and major difference from other DI tools. It might be added even to long time supported project almost without modifications. 
 
-Only thing required is additional component "Injector" added to GameObject and initiated in prior along other scripts. All the rest works fine in plain old way.
+Only thing required is additional component "Injector" added to GameObject and initiated in prior along other scripts. All the rest works fine in plain old way and takes almost no processor time.
 
 <a id="table"></a>
 * <a href="#howto">How to</a>
