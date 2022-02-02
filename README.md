@@ -7,6 +7,7 @@ Performant lightweight and easy to use DI tool for Unity3d. Small amount of code
 - class autocomposition with constructor injection;
 - factories;
 - event injection;
+It has been proved working well on a various heavy duty projects.
 
 ### What is it for? ###
 
