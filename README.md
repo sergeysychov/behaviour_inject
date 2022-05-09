@@ -8,6 +8,8 @@ Performant lightweight and easy to use DI tool for Unity3d. Small amount of code
 - factories;
 - event injection;
 
+It has been proved working well on a various heavy duty projects.
+
 ### What is it for? ###
 
 Dependency injection significantly enhances ability to develop, support and refactor a codebase. It organizes creation and accessing objects in a project. When links between objects become messy and classes overweighted it is time to use DI which relieves code from using omnipresent singletons, "FindObjectOfType", direct inspector-linking and other dirty techniques.
@@ -83,7 +85,7 @@ Voila! MyDataModel should be there after Awake of the Injector. Note that if you
 
 ### Core concept ###
 
-It all works just like this. Right after you've created Context it is added to global ContextRegistry. When Injector awakes it checks ContextRegistry for existing specified Context. Then it lists all current components on it's gameObject and in each component looks for [Inject]-marked fields, properties and setters. For each [Inject] member it resolves corresponding Type object from context and sets this object to member. In the end of that cycle, before all other scripts are awaken, they have their dependencies already in place, ready to operate.
+Right after you've created Context it is added to global ContextRegistry. When Injector awakes it checks if specified Context exists. Then it lists all [Inject]-marked fields, properties and setters in all scripts in current GameObject. For each found member it resolves corresponding object from context and sets this object to this member. As a result all other scripts already have their dependencies in place on awakening.
 
 ![alt text](Doc/core_concept.png)
 
@@ -183,7 +185,7 @@ Autocomposition creates only one single object of type, keeps it and use for eve
 ## <a id="create"></a> Create instead of new
 <a href="#table">Back to contents</a>
 
-Sometimes there's need to create local object using a variety of context-related dependencies. One shouldn't resolve this dependencies to create it manually. It would be better to use [Create] attribute. It means that denoted object type should not bee looked among dependencies registered at context but immidiately created using them. In can be both used in members and constructors. Here's the exambple.
+Sometimes there's need to create local object using a variety of context-related dependencies. One shouldn't resolve this dependencies to create it manually. It would be better to use [Create] attribute. It means that denoted object type should not bee looked among dependencies registered at context but immidiately created using them. It can be both used in members and constructors. Here's the exambple.
 
 ```csharp
 public class Foo
@@ -244,7 +246,7 @@ public class Foo
 
 In case if you needed specific logic of object creation you may use factories. For example if you need to create object at some point at runtime. Or create object each time IoC resolving this type.
 
-Factories also can be eather defined directly in code, or created by autocomposition.
+Factories also can be either defined directly in code, or created by autocomposition.
 
 ```csharp
 public class InitiatorBehavour : MonoBehaviour
