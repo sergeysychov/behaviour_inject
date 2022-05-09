@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace BehaviourInject.Internal
@@ -126,7 +125,14 @@ namespace BehaviourInject.Internal
 				_invocationArguments[i] = GetDependency(dependencyType, context, resolveMode);
 			}
 
-			_methodInfo.Invoke(target, _invocationArguments);
+			try
+			{
+				_methodInfo.Invoke(target, _invocationArguments);
+			}
+			catch (TargetInvocationException invocationException)
+			{
+				UnityEngine.Debug.LogException(invocationException.InnerException);
+			}
 		}
 	}
 }

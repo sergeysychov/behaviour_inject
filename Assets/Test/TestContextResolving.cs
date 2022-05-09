@@ -73,6 +73,12 @@ namespace BehaviourInject.Test
 			{
 				InitInjected = foo;
 			}
+			
+			// [Inject]
+			// public void TestException(SimpleDependency foo)
+			// {
+			// 	throw new ArgumentException("Unhandled exception in Inject target method.");
+			// }
 
 			[Inject]
 			public virtual void CheckTwice(SimpleDependency foo)
