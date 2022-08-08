@@ -94,19 +94,20 @@ namespace BehaviourInject.Internal
 		private Type[] _dependencyTypes;
 		private ResolveMode[] _resolveModes;
 		private object[] _invocationArguments;
+		private int _argumentCount;
 
 		public MethodInjection(MethodInfo info)
 		{
 			_methodInfo = info;
 			ResolveMode methodResolveMode = GetResolveMode(_methodInfo);
 			ParameterInfo[] arguments = _methodInfo.GetParameters();
-			int argumentCount = arguments.Length;
+			_argumentCount = arguments.Length;
 			
-			_dependencyTypes = new Type[argumentCount];
-			_invocationArguments = new object[argumentCount];
-			_resolveModes = new ResolveMode[argumentCount];
+			_dependencyTypes = new Type[_argumentCount];
+			_invocationArguments = new object[_argumentCount];
+			_resolveModes = new ResolveMode[_argumentCount];
 			
-			for (int i = 0; i < argumentCount; i++)
+			for (int i = 0; i < _argumentCount; i++)
 			{
 				ParameterInfo argument = arguments[i];
 				_dependencyTypes[i] = argument.ParameterType;
@@ -132,6 +133,10 @@ namespace BehaviourInject.Internal
 			catch (TargetInvocationException invocationException)
 			{
 				UnityEngine.Debug.LogException(invocationException.InnerException);
+			}
+			finally
+			{
+				Array.Clear(_invocationArguments, 0, _argumentCount);
 			}
 		}
 	}

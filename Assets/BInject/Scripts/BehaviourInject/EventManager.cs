@@ -9,10 +9,12 @@ namespace BehaviourInject.Internal
 
 		private EventManager _parent;
 		private List<EventTransmitter> _eventHandlers;
+		private List<EventTransmitter> _executionBuffer;
 
 		public EventManager()
 		{
 			_eventHandlers = new List<EventTransmitter>(32);
+			_executionBuffer = new List<EventTransmitter>(_eventHandlers.Capacity);
 		}
 
 		public void DispatchEvent(object evnt)
@@ -24,9 +26,14 @@ namespace BehaviourInject.Internal
 			if(eventType.IsValueType)
 				throw new BehaviourInjectException("Dispatched event can not be value type");
 
+			// _eventHandlers list might be changed during event execution.
+			_executionBuffer.Clear();
+			_executionBuffer.AddRange(_eventHandlers);
 			int count = _eventHandlers.Count;
 			for (int i = 0; i < count; i++)
-				_eventHandlers[i].TransmitEvent(evnt);
+			{
+				_executionBuffer[i].TransmitEvent(evnt);
+			}
 		}
 
 

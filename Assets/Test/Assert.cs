@@ -51,10 +51,15 @@ namespace BehaviourInject.Test
 		{
 			LogRed("Fail " + message);
 		}
+		
+		public static void Reached(string message)
+		{
+			LogGreen("Success " + message);
+		}
 
 		public static void Exception(Exception e, string message = "")
 		{
-			LogGreen("Seccess got exeption " + e.GetType() + "; " + message);
+			LogGreen("Success got exception " + e.GetType() + "; " + message);
 		}
 
 
