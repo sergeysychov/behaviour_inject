@@ -256,6 +256,7 @@ public class InitiatorBehavour : MonoBehaviour
         Context context1 = Context.Create();
         context1.RegisterType<Connection>();
         context1.RegisterAsFunction<Connection, ConnectionConfig>(connection => connection.Config);
+	// now you may resolve ConnectionConfig
     }
 }
 
