@@ -124,4 +124,42 @@ namespace BehaviourInject.Internal
 			get { return typeof(T); }
 		}
 	}
+
+
+	public class FactoryMethodDependency<T1, T2> : IDependency
+		where T1 : class
+		where T2 : class
+	{
+	private IDependency _argumentDependency;
+	private Func<T1, T2> _func;
+
+	public bool AlreadyNotified { get; set; }
+
+	public FactoryMethodDependency(IDependency argumentDependency, Func<T1, T2> func)
+	{
+		_argumentDependency = argumentDependency;
+		_func = func;
+	}
+
+	public object Resolve(Context context)
+	{
+		return _func((T1) _argumentDependency.Resolve(context));
+	}
+
+
+	public void Dispose()
+	{
+		_argumentDependency.Dispose();
+	}
+
+	public bool IsSingle
+	{
+		get { return false; }
+	}
+
+	public Type DependencyType
+	{
+		get { return typeof(T2); }
+	}
+	}
 }
