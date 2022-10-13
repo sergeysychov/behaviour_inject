@@ -47,7 +47,15 @@ namespace BehaviourInject.Internal
 		public void Invoke(object target, object evnt)
 		{
 			_invocationParameters[0] = evnt;
-			_method.Invoke(target, _invocationParameters);
+
+			try
+			{
+				_method.Invoke(target, _invocationParameters);
+			}
+			finally
+			{
+				_invocationParameters[0] = null;
+			}
 		}
 	}
 
@@ -71,11 +79,18 @@ namespace BehaviourInject.Internal
 
 			_invocationParameters[0] = evnt;
 
-			Delegate[] delegates = receiver.GetInvocationList();
-			for (int i = 0; i < delegates.Length; i++)
+			try
 			{
-				Delegate d = delegates[i];
-				d.Method.Invoke(d.Target, _invocationParameters);
+				Delegate[] delegates = receiver.GetInvocationList();
+				for (int i = 0; i < delegates.Length; i++)
+				{
+					Delegate d = delegates[i];
+					d.Method.Invoke(d.Target, _invocationParameters);
+				}
+			}
+			finally
+			{
+				_invocationParameters[0] = null;
 			}
 		}
 	}
