@@ -92,5 +92,11 @@ namespace BehaviourInject.Internal
 
 			return GetContext(names[index]);
         }
+
+
+        public static bool Contains(string name)
+        {
+	        return _contextRegistry.ContainsKey(name);
+        }
     }
 }

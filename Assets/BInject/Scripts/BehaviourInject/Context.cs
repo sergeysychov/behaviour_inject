@@ -74,6 +74,12 @@ namespace BehaviourInject
 		{
 			return new Context("___local_context", false);
 		}
+		
+		
+		public static bool Exists(string contextName)
+		{
+			return ContextRegistry.Contains(contextName);
+		}
 
 
 		//[Obsolete("Use Context.Create() instead")]
