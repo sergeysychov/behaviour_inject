@@ -296,6 +296,20 @@ namespace BehaviourInject
 			InsertDependency(dependencyType, new SingleAutocomposeDependency(concreteType));
 			return this;
 		}
+
+
+		public Context RegisterAsFunction<T1, T2>(Func<T1, T2> func)
+			where T1 : class
+			where T2 : class
+		{
+			Type argumentType = typeof(T1);
+			Type dependencyType = typeof(T2);
+			if (!_dependencies.TryGetValue(argumentType, out IDependency argumentDependency))
+				throw new BehaviourInjectException("No argument type registered: " + argumentType.FullName);
+			var factoryDependency = new FactoryMethodDependency<T1, T2>(argumentDependency, func);
+			InsertDependency(dependencyType, factoryDependency);
+			return this;
+		}
 		
 		
 		public Context RegisterTypeAsMultiple<T>(params Type[] types)

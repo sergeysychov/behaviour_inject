@@ -244,7 +244,25 @@ public class Foo
 ## <a id="factories"></a> Factories
 <a href="#table">Back to contents</a>
 
-In case if you needed specific logic of object creation you may use factories. For example if you need to create object at some point at runtime. Or create object each time IoC resolving this type.
+In case if you needed specific logic of object creation you may use factories. 
+
+Easiest way to make dependency based on other dependency is to use factory function. For example if one needs to use property as a source.
+
+
+```csharp
+public class InitiatorBehavour : MonoBehaviour
+{
+    void Awake(){
+        Context context1 = Context.Create();
+        context1.RegisterType<Connection>();
+        context1.RegisterAsFunction<Connection, ConnectionConfig>(connection => connection.Config);
+	// now you may resolve ConnectionConfig
+    }
+}
+
+```
+
+Other example if you need to create object at some point at runtime with complex logic or multiple dependencies.
 
 Factories also can be either defined directly in code, or created by autocomposition.
 
@@ -290,6 +308,7 @@ public class GameDependentBehaviour : MonoBehaviour
 }
 
 ```
+In both cases creation is called each time IoC resolving this type.
 
 ## <a id="events"></a> Events
 <a href="#table">Back to contents</a>
