@@ -41,17 +41,16 @@ namespace BehaviourInject
 		public const string DEFAULT = "default";
 		private const int MAX_HIERARCHY_DEPTH = 32;
 
-        private Dictionary<Type, IDependency> _dependencies;
-		private List<IDependency> _listedDependencies;
-		private Stack<Type> _compositionStack;
+        private readonly Dictionary<Type, IDependency> _dependencies;
+		private readonly List<IDependency> _listedDependencies;
+		private readonly Stack<Type> _compositionStack;
 
-		private List<CommandEntry> _commands;
-		private Dictionary<Type, CommandEntry> _commandsByEvent;
+		private readonly List<CommandEntry> _commands;
+		private readonly Dictionary<Type, CommandEntry> _commandsByEvent;
 
-
-        private string _name;
+		private readonly string _name;
+		private readonly bool _isGlobal;
 		private IContextParent _parentContext = ParentContextStub.STUB;
-		private bool _isGlobal;
 
 		public bool IsDestroyed { get; private set; }
 		public EventManager EventManager { get; private set; }

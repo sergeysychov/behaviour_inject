@@ -38,6 +38,8 @@ namespace BehaviourInject
 					_context = null;
 				}
 				_contextIndex = index;
+				_context = ContextRegistry.GetContext(_contextIndex);
+				_context.OnContextDestroyed += OnContextDestroy;
 			}
 		}
 
@@ -45,16 +47,7 @@ namespace BehaviourInject
 		{
 			Settings settings = Settings.Load();
 			int index = settings.FindIndexOf(contextName);
-
-			if (_contextIndex != index)
-			{
-				if (_context != null)
-				{
-					_context.OnContextDestroyed -= OnContextDestroy;
-					_context = null;
-				}
-				_contextIndex = index;
-			}
+			SwitchContext(index);
 		}
 
 

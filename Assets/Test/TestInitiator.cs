@@ -20,10 +20,14 @@ namespace BehaviourInject.Test
 		{
 			_precomposed = new PrecomposeDependency("test1");
 
+			Assert.False(Context.Exists("test"), "Context not exist check.");
+			
 			_contextTest = Context.Create("test")
 				.RegisterDependency(_precomposed)
 				.RegisterType<AutocomposeDependency>()
 				.RegisterTypeAs<DependencyImpl, IDependency>();
+			
+			Assert.True(Context.Exists("test"), "Context exist check.");
 
 			_contextBase = Context.Create("base")
 				.SetParentContext("test")
@@ -48,6 +52,7 @@ namespace BehaviourInject.Test
 			_contextTest.Destroy();
 			_contextBase.Destroy();
 			Assert.True(_precomposed.Disposed, "dispose");
+			Assert.False(Context.Exists("test"), "Context not exist after destroy check.");
 
 			_testRunner.SetActive(true);
 		}
