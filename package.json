@@ -14,5 +14,15 @@
   "editorOnly": false,
   "upmSupport": true,
   "dependencies": {
-  }
+  },
+  "samples": [
+	  {
+		  "displayName": "Examples",
+		  "path": "Samples~/Examples"
+	  },
+	  {
+		  "displayName": "Benchmarks",
+		  "path": "Samples~/Benchmarks"
+	  }
+  ]
 }
