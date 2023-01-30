@@ -57,7 +57,7 @@ void Awake(){
 
 Place 'Injector' at first place in the GameObject, adjacently to your dependent behaviours. "Context" dropdown defines what context you are now using. Thus you can use multiple contexts in your application.
 
-![alt text](Doc/placing_injector.JPG)
+![alt text](https://github.com/sergeysychov/behaviour_inject/blob/master/Doc/placing_injector.JPG)
 
 In your MonoBehaviour mark dependency in this way:
 
@@ -81,13 +81,13 @@ public class MyBehaviour : MonoBehaviour
 
 Voila! MyDataModel should be there after Awake of the Injector. Note that if you want to use dependencies in Awake method, you should guarantee that Injector awakes before your target behaviours (but still after behaviour where context is created). In best case execution order must be like this: ContextCreator => Injector => Your code. Consider using 'Script Execution Order' feature in Unity.
 
-![alt text](Doc/execution_order.JPG)
+![alt text](https://github.com/sergeysychov/behaviour_inject/blob/master/Doc/execution_order.JPG)
 
 ### Core concept ###
 
 Right after you've created Context it is added to global ContextRegistry. When Injector awakes it checks if specified Context exists. Then it lists all [Inject]-marked fields, properties and setters in all scripts in current GameObject. For each found member it resolves corresponding object from context and sets this object to this member. As a result all other scripts already have their dependencies in place on awakening.
 
-![alt text](Doc/core_concept.png)
+![alt text](https://github.com/sergeysychov/behaviour_inject/blob/master/Doc/core_concept.png)
 
 ## <a id="multiple"></a> Multiple contexts
 <a href="#table">Back to contents</a>
@@ -414,7 +414,7 @@ public class CustomContext : HierarchyContext
 It is important to call **CreateLocal** to create context that will be correspond ONLY to this gameObject. Otherwise it will create global "default" context and probably throw an exception.
 Now if any Injector in it's children has toggled "Use hierarchy" it will search for **HierarchyContext** in it's parents upwards and resolve it's context.
 
-![alt text](https://github.com/sergeysychov/behaviour_inject/Doc/hierarchy_context.png)
+![alt text](https://github.com/sergeysychov/behaviour_inject/blob/master/Doc/hierarchy_context.png)
 
 Just remember that in case of manual context creation you are also responsible for it's destruction, so it's a good practice to destroy contexts in OnDestroy().
 
