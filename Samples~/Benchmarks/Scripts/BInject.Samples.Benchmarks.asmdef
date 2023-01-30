@@ -1,0 +1,16 @@
+{
+    "name": "BInject.Samples.Benchmarks",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9a8c1128010aa4948a81f26429f40636"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
