@@ -414,7 +414,7 @@ public class CustomContext : HierarchyContext
 It is important to call **CreateLocal** to create context that will be correspond ONLY to this gameObject. Otherwise it will create global "default" context and probably throw an exception.
 Now if any Injector in it's children has toggled "Use hierarchy" it will search for **HierarchyContext** in it's parents upwards and resolve it's context.
 
-![alt text](Doc/hierarchy_context.png)
+![alt text](https://github.com/sergeysychov/behaviour_inject/Doc/hierarchy_context.png)
 
 Just remember that in case of manual context creation you are also responsible for it's destruction, so it's a good practice to destroy contexts in OnDestroy().
 
