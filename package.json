@@ -18,13 +18,17 @@
   "dependencies": {
   },
   "samples": [
-	  {
-		  "displayName": "Examples",
-		  "path": "Samples~/Examples"
-	  },
-	  {
-		  "displayName": "Benchmarks",
-		  "path": "Samples~/Benchmarks"
-	  }
+    {
+      "displayName": "Examples",
+      "path": "Samples~/Examples"
+    },
+    {
+      "displayName": "Tests Scene",
+      "path": "Samples~/Tests"
+    },
+    {
+      "displayName": "Benchmarks",
+      "path": "Samples~/Benchmarks"
+    }
   ]
 }
