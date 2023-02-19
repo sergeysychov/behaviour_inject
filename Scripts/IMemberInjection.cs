@@ -3,13 +3,13 @@ using System.Reflection;
 
 namespace BehaviourInject.Internal
 {
-	public interface IMemberInjection
+	internal interface IMemberInjection
 	{
 		void Inject(object target, Context context);
 	}
 	
 
-	public class AbstractInjecton {
+	internal class AbstractInjecton {
 
 		protected ResolveMode GetResolveMode(ICustomAttributeProvider attributeProvider)
 		{
@@ -40,7 +40,7 @@ namespace BehaviourInject.Internal
 	}
 
 
-	public class PropertyInjection : AbstractInjecton, IMemberInjection
+	internal class PropertyInjection : AbstractInjecton, IMemberInjection
 	{
 		private readonly PropertyInfo _propertyInfo;
 		private readonly Type _dependencyType;
@@ -63,7 +63,7 @@ namespace BehaviourInject.Internal
 		}
 	}
 
-	public class FieldInjection : AbstractInjecton, IMemberInjection
+	internal class FieldInjection : AbstractInjecton, IMemberInjection
 	{
 		private readonly FieldInfo _fieldInfo;
 		private readonly Type _dependencyType;
@@ -87,7 +87,7 @@ namespace BehaviourInject.Internal
 	}
 
 
-	public class MethodInjection : AbstractInjecton, IMemberInjection
+	internal class MethodInjection : AbstractInjecton, IMemberInjection
 	{
 		private MethodInfo _methodInfo;
 

@@ -32,7 +32,7 @@ namespace BehaviourInject.Internal
 {
     //Do not use this class or it's methods anywhere!
 
-    public class ContextRegistry
+    internal class ContextRegistry
     {
         private static Dictionary<string, Context> _contextRegistry = new Dictionary<string, Context>();
 

@@ -7,7 +7,7 @@ using BehaviourInject.Diagnostics;
 
 namespace BehaviourInject.Internal
 {
-	public class ReflectionCache
+	internal class ReflectionCache
 	{
 		private static IMemberInjection[] EMPTY_MEMBER_COLLECTION = new IMemberInjection[0];
 

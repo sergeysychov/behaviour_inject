@@ -9,7 +9,7 @@ namespace BehaviourInject.Internal
 		EventManager EventManager { get; }
 	}
 
-	public class ParentContextStub : IContextParent
+	internal class ParentContextStub : IContextParent
 	{
 		public static readonly ParentContextStub STUB = new ParentContextStub();
 

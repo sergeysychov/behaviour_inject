@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BehaviourInject.Diagnostics
 {
-	public static class BinjectDiagnostics
+	internal static class BinjectDiagnostics
 	{
 		public static bool IsEnabled;
 		public static int ContextCount;
