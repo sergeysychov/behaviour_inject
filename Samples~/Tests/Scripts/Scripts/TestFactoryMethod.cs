@@ -2,7 +2,7 @@
 using BehaviourInject.Test;
 using UnityEngine;
 
-namespace Test
+namespace BehaviourInject.Test
 {
     public class TestFactoryMethod : MonoBehaviour
     {
