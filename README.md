@@ -18,7 +18,7 @@ Just define core classes and interfaces required by game logic, mark some method
 
 ### Core feature ###
 
-BInject preserves natural Unity3d scripting and instancing pipeline. It is its core concept and major difference from other DI tools. It might be added even to long time supported project almost without modifications. 
+A core concept of BInject is in preserving natural Unity3d scripting. Unlike other DI tools it doesn't require any special code in business logic and might be added even in long term project with little modifications. Your logic easily might be unaware of Binject's presence in project.
 
 Only thing required is component "Injector" added to GameObject along other scripts. All the rest works fine in plain old way and takes almost no processor time.
 
@@ -43,7 +43,7 @@ For most cases you will need only three entities:
 
 ### Initialization ###
 
-Use any of your behaviours to settle following code. Make shure that it awakes BEFORE other behaviours, where you want to inject properties, and Injector.
+Use any of your behaviours to settle following code. Make sure that it awakes BEFORE other behaviours, where you want to inject properties, and Injector.
 
 ```csharp
 void Awake(){
