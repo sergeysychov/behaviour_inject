@@ -5,6 +5,8 @@
   "version": "1.0.6",
   "unity": "2018.4",
   "license": "MIT",
+  "documentationUrl": "https://github.com/sergeysychov/behaviour_inject#readme",
+  "licensesUrl": "https://github.com/sergeysychov/behaviour_inject/blob/master/LICENSE.md",
   "repository": {
     "type": "git",
     "url": "git+git@github.com:sergeysychov/behaviour_inject.git"
@@ -14,5 +16,19 @@
   "editorOnly": false,
   "upmSupport": true,
   "dependencies": {
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Examples",
+      "path": "Samples~/Examples"
+    },
+    {
+      "displayName": "Tests Scene",
+      "path": "Samples~/Tests"
+    },
+    {
+      "displayName": "Benchmarks",
+      "path": "Samples~/Benchmarks"
+    }
+  ]
 }
