@@ -240,6 +240,20 @@ public class Foo
     }
 }
 ```
+It is also possible to call instantiator.New<T>() with additional custom arguments if needed by constructor of T.
+```csharp
+var b = new AdditionalCustomDependency;
+var c = new AdditionalCustomDependency2;
+
+Bar newlyComposedObject = _instantiator.New<Bar>(b, c);
+	
+public class Bar
+{
+	public Bar(ContextLocatedDependency a, // this dependency comes from context as usual
+		AdditionalCustomDependency b, AdditionalCustomDependency2 c) // these dependencies comes from 'New' arguments. Order is not important
+	...
+}
+```
 
 ## <a id="factories"></a> Factories
 <a href="#table">Back to contents</a>

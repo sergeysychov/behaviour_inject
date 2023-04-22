@@ -410,6 +410,12 @@ namespace BehaviourInject
 
 
 		public object AutocomposeDependency(Type resolvingType)
+		{
+			return AutocomposeDependency(resolvingType, Array.Empty<object>());
+		}
+		
+		
+		public object AutocomposeDependency(Type resolvingType, object[] additions)
         {
 	        CheckAgainstCompositionStack(resolvingType);
 	        _compositionStack.Push(resolvingType);
@@ -430,10 +436,13 @@ namespace BehaviourInject
                 }
                 else
                 {
-	                if (!TryResolve(argumentType, out dependency))
+	                if (!TryResolve(argumentType, out dependency)
+	                    && !TryFindAmongAdditions(argumentType, additions, out dependency))
+	                {
 		                throw new BehaviourInjectException(String.Format(
 			                "Could not resolve {0} for {2} in context {1}. Probably it's not registered",
 			                argumentType.FullName, _name, resolvingType.FullName));
+	                }
                 }
 
 				arguments[i] = dependency;
@@ -449,6 +458,22 @@ namespace BehaviourInject
 			
             return result;
         }
+
+
+		private bool TryFindAmongAdditions(Type wantedType, object[] additions, out object dependency)
+		{
+			dependency = null;
+			if (additions.Length == 0) return false;
+			foreach (object addition in additions)
+			{
+				if (addition.GetType() == wantedType)
+				{
+					dependency = addition;
+					return true;
+				}
+			}
+			return false;
+		}
 
 
 		private void CheckAgainstCompositionStack(Type type)

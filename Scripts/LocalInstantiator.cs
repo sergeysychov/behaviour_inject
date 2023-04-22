@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace BehaviourInject
 {
@@ -16,6 +17,11 @@ namespace BehaviourInject
 			return (T) _containerContext.AutocomposeDependency(typeof(T));
 		}
 		
+		public T New<T>(params object[] additions)
+		{
+			return (T) _containerContext.AutocomposeDependency(typeof(T), additions);
+		}
+		
 		public object New(Type t)
 		{
 			return _containerContext.AutocomposeDependency(t);
@@ -26,6 +32,7 @@ namespace BehaviourInject
 	public interface IInstantiator
 	{
 		T New<T>();
+		T New<T>(params object[] additions);
 		object New(Type t);
 	}
 }

@@ -14,6 +14,6 @@ namespace BehaviourInject.Test.TestIgnoreNamespace
 		void Start()
 		{
 			Assert.IsNull(Dependency, "ignore namespace");
-		}
+		}	
 	}
 }
