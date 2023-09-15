@@ -19,22 +19,11 @@ namespace BehaviourInject.Test
 		private AutocomposeDependency _methodInjected;
 		[Inject]
 		public AutocomposeDependency PropertyInjected { get; private set; }
-
-		[InjectEvent(Inherit = true)]
-		public Action<IEvent> OnIEvent;
-
-		[InjectEvent]
-		public Action<TestEvent> EmptyEvent;
-
+        
 		[Inject]
 		public void Init(AutocomposeDependency dep)
 		{
 			_methodInjected = dep;
-		}
-
-		private void Awake()
-		{
-			OnIEvent += Handle;
 		}
 
 		void Start()
@@ -49,8 +38,8 @@ namespace BehaviourInject.Test
 			Idependency.Run();
 		}
 
-
-		public void Handle(IEvent evt)
+        [InjectEvent(DerivedFilter = new[] { typeof(TestEvent) })]
+        public void Handle(IEvent evt)
 		{
 			evt1 = evt;
 		}

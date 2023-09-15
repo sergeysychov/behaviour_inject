@@ -10,20 +10,19 @@ namespace BehaviourInject.Test
 		public TestEvent _methodEvt;
 		public TestEvent _fieldEvt;
 
-		[InjectEvent]
-		public Action<TestEvent> OnTestEvent;
+        
+        public Action<TestEvent> OnTestEvent;
 
 		void Awake()
 		{
 			OnTestEvent += FieldEventHandler;
 		}
 
-
-		private void FieldEventHandler(TestEvent evt)
+        [InjectEvent]
+        private void FieldEventHandler(TestEvent evt)
 		{
 			_fieldEvt = evt;
 		}
-
 
 		[InjectEvent]
 		public void AncestorEvent(TestEvent evt)

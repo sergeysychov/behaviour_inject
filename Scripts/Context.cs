@@ -27,6 +27,8 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Text;
 using BehaviourInject.Internal;
+using System.Linq;
+using System.Diagnostics;
 
 #if BINJECT_DIAGNOSTICS
 using BehaviourInject.Diagnostics;
@@ -36,53 +38,56 @@ namespace BehaviourInject
 {
     //Do not use this class anywhere!
 
-    public class Context : IContextParent, EventTransmitter
+    public class Context : IContextParent, IEventDispatcher, IEventRegistry
     {
 		public const string DEFAULT = "default";
-		private const int MAX_HIERARCHY_DEPTH = 32;
 
         private readonly Dictionary<Type, IDependency> _dependencies;
 		private readonly List<IDependency> _listedDependencies;
 		private readonly Stack<Type> _compositionStack;
 
-		private readonly List<CommandEntry> _commands;
-		private readonly Dictionary<Type, CommandEntry> _commandsByEvent;
-
 		private readonly string _name;
 		private readonly bool _isGlobal;
 		private IContextParent _parentContext = ParentContextStub.STUB;
-
+		private HashSet<Context> _children;
+		
 		public bool IsDestroyed { get; private set; }
-		public EventManager EventManager { get; private set; }
+		public EventManager EventManager { [DebuggerStepThrough] get; private set; }
+
 		public event Action OnContextDestroyed;
 
+		public static Context Create() => Create(Context.DEFAULT);
 
-		public static Context Create()
-		{
-			return Create(Context.DEFAULT);
-		}
+		public static Context Create(string name) => InternalCreate(name, parent: null, overrideEventManager: false);
 
-		public static Context Create(string name)
-		{
-			Context context = new Context(name, true);
-			ContextRegistry.RegisterContext(name, context);
-			return context;
-		}
+        public static Context CreateChild(string name)
+            => InternalCreate(name, parent: ContextRegistry.GetContext(Context.DEFAULT), overrideEventManager: false);
 
-		public static Context CreateLocal()
-		{
-			return new Context("___local_context", false);
-		}
+        public static Context CreateChild(string name, string parent)
+            => InternalCreate(name, parent: ContextRegistry.GetContext(parent), overrideEventManager: false);
+
+        public static Context CreateChild(string name, string parent, bool overrideEventManager)
+            => InternalCreate(name, parent: ContextRegistry.GetContext(parent), overrideEventManager: overrideEventManager);
+
+        public static Context CreateChild(string name, Context parent) => InternalCreate(name, parent: parent, overrideEventManager: false);
+        public static Context CreateChild(string name, Context parent, bool overrideEventManager) => InternalCreate(name, parent: parent, overrideEventManager: overrideEventManager);
+
+        private static Context InternalCreate(string name, Context parent, bool overrideEventManager)
+        {
+            ContextRegistry.ValidateContextName(name);
+
+            Context context = new Context(name, isGlobal: true, parent: parent, overrideEventManager: overrideEventManager);
+            ContextRegistry.RegisterContext(name, context);
+
+            return context;
+        }
+
+
+        public static Context CreateLocal() => new Context("___local_context", false, parent: null, overrideEventManager: true);
 		
-		
-		public static bool Exists(string contextName)
-		{
-			return ContextRegistry.Contains(contextName);
-		}
+		public static bool Exists(string contextName) => ContextRegistry.Contains(contextName);
 
-
-		//[Obsolete("Use Context.Create() instead")]
-        private Context(string name, bool isGlobal = true)
+        private Context(string name, bool isGlobal, Context parent, bool overrideEventManager)
 		{
 			_name = name;
 			_isGlobal = isGlobal;
@@ -90,141 +95,94 @@ namespace BehaviourInject
 			_listedDependencies = new List<IDependency>(32);
 			_compositionStack = new Stack<Type>(16);
 
-			_commands = new List<CommandEntry>(32);
-			_commandsByEvent = new Dictionary<Type, CommandEntry>(32);
+			_children = new HashSet<Context>();
+
+            RegisterSingleton<IEventDispatcher>(this);
+            RegisterSingleton<IEventRegistry>(this);
+
+            RegisterSingleton<IInstantiator>(new LocalInstantiator(this));
+
+			if (parent is not null && !overrideEventManager)
+			{
+				EventManager = parent.EventManager;
+			}
+			else
+			{
+                EventManager = new EventManager();
+				if (parent is not null)
+				{ 
+					parent.EventManager.AttachDispatcher(this);
+				}
+            }
+
+            _parentContext = ParentContextStub.STUB;
+            if (parent is not null)
+			{
+				SetParentContext(parent);
+			}
 			
-			EventManager = new EventManager();
-			EventManager.AddTransmitter(this);
-			RegisterDependency<IEventDispatcher>(EventManager);
-			RegisterDependency<IInstantiator>(new LocalInstantiator(this));
+        }
 
-			_parentContext = ParentContextStub.STUB;
-		}
-
+		private void ValidateParent(Context toValidate)
+		{
+			if (object.ReferenceEquals(toValidate, this))
+			{
+				throw new ContextCreationException($"Scopes can not be cycled: {_name}");
+			}
+			if (_parentContext is Context parent)
+			{
+				parent.ValidateParent(toValidate);
+			}
+        }
 
 		public Context SetParentContext(string parentName)
-		{
-			if (_name == parentName)
-				throw new ContextCreationException("Scopes can not be cycled: " + _name + " - " + parentName);
+        {
+            if (_name == parentName)
+                throw new ContextCreationException($"Scopes can not be cycled: {_name} - {parentName}");
 
-			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
+            Context newParentContext = ContextRegistry.GetContext(parentName);
 
-			EventManager.ClearParent();
+            return SetParentContext(newParentContext);
+        }
 
-			Context parentContext = ContextRegistry.GetContext(parentName);
-			_parentContext = parentContext;
-			_parentContext.OnContextDestroyed += HandleParentDestroyed;
-			EventManager.SetParent(_parentContext.EventManager);
+        private Context SetParentContext(Context parent)
+        {
+            parent.ValidateParent(this);
 
-			return this;
-		}
+            _parentContext.OnContextDestroyed -= HandleParentDestroyed;
+            if (_parentContext is Context oldParent)
+            {
+                oldParent._children.Remove(this);
+				oldParent.EventManager.DetachDispatcher(EventManager);
+            }
 
+            _parentContext = parent;
+            parent._children.Add(this);
+            _parentContext.OnContextDestroyed += HandleParentDestroyed;
 
-		public void TransmitEvent(object evnt)
-		{
-			int count = _listedDependencies.Count;
-			for (int i = 0; i < count; i++)
-				_listedDependencies[i].AlreadyNotified = false;
-			
-			Type eventType = evnt.GetType();
-			for (int i = 0; i < _listedDependencies.Count; i++)
-			{
-				IDependency dependency = _listedDependencies[i];
-				if (dependency.IsSingle 
-				    && ReflectionCache.GetEventHandlersFor(dependency.DependencyType).Length > 0
-					&& !dependency.AlreadyNotified)
-				{
-					object target = dependency.Resolve(this);
-					InjectEventTo(target, eventType, evnt);
-					dependency.AlreadyNotified = true;
-				}
-			}
+            return this;
+        }
 
-
-			for (int i = 0; i < _commands.Count; i++)
-			{
-				CommandEntry commandEntry = _commands[i];
-				bool isSuitable = commandEntry.EventType.IsAssignableFrom(eventType);
-				if (isSuitable)
-					ExecuteCommands(commandEntry.CommandTypes, evnt);
-			}
-		}
-
-
-		private void InjectEventTo(object recipient, Type eventType, object evt)
-		{
-			Type recipientType = recipient.GetType();
-			IEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(recipientType);
-			for (int i = 0; i < handlers.Length; i++)
-			{
-				IEventHandler handler = handlers[i];
-				try
-				{
-					if (handler.IsSuitableForEvent(eventType))
-						handler.Invoke(recipient, evt);
-				} catch(Exception e)
-				{
-					UnityEngine.Debug.LogException(e);
-				}
-			}
-		}
-
-
-		private void ExecuteCommands(List<Type> commands, object evt)
-		{
-			Type eventType = evt.GetType();
-			for (int i = 0; i < commands.Count; i++)
-			{
-				Type commandType = commands[i];
-				ICommand command = (ICommand)AutocomposeDependency(commandType);
-				InjectEventTo(command, eventType, evt);
-				
-				try
-				{
-					command.Execute();
-				}
-				catch (Exception e)
-				{
-					UnityEngine.Debug.LogException(e);
-				}
-			}
-		}
-
-
-		private void HandleParentDestroyed()
+        private void HandleParentDestroyed()
 		{
 			Destroy();
 		}
 
+		public Context RegisterSingleton<T>(T instance) {
+            RegisterDependencyAs<T, T>(instance);
 
-		public Context RegisterDependency<T>(T dependency) {
-            RegisterDependencyAs<T, T>(dependency);
 			return this;
         }
-
 
         public Context RegisterDependencyAs<T, IT>(T dependency) where T : IT
         {
             ThrowIfNull(dependency, "dependency");
 
-			UnityEngine.MonoBehaviour monobeh = dependency as UnityEngine.MonoBehaviour;
-			if (monobeh != null)
-				TrySuppressInjectorEvents(monobeh);
-
             Type dependencyType = typeof(IT);
-			InsertDependency(dependencyType, new SingleDependency(dependency));
+			InsertDependency(dependencyType, new SingletonDependency(dependency, this));
+
 			return this;
         }
-
-
-		//this method fixes bug, wich caused doubling event for components that are both dependency and recipient
-		private void TrySuppressInjectorEvents(UnityEngine.MonoBehaviour behaviour)
-		{
-			Injector injector = behaviour.GetComponent<Injector>();
-			if (injector != null)
-				injector.SuppressEventsFor(behaviour);
-		}
-
 
 		private void InsertDependency(Type type, IDependency dependency)
 		{
@@ -237,13 +195,11 @@ namespace BehaviourInject
 #endif
 		}
 
-
 		private void ThrowIfNull(object target, string argName)
         {
             if (target == null)
                 throw new BehaviourInjectException(argName + " is null");
         }
-
 
         private void ThrowIfRegistered(Type dependencyType)
         {
@@ -251,27 +207,25 @@ namespace BehaviourInject
                 throw new ContextCreationException(dependencyType.FullName + " is already registered in this context");
         }
 
-
         public Context RegisterFactory<T>(DependencyFactory<T> factory)
         {
             ThrowIfNull(factory, "factory");
             Type dependencyType = typeof(T);
 			Type factoryType = factory.GetType();
 
-			SingleDependency selfDependency = new SingleDependency(factory);
+			SingletonDependency selfDependency = new SingletonDependency(factory, context: this);
 			InsertDependency(factoryType, selfDependency);
 			FactoryDependency<T> factoryDependency = new FactoryDependency<T>(selfDependency);
 			InsertDependency(dependencyType, factoryDependency);
 
 			return this;
         }
-
 
         public Context RegisterFactory<T, FactoryT>() where FactoryT : DependencyFactory<T>
         {
             Type factoryType = typeof(FactoryT);
             Type dependencyType = typeof(T);
-			var selfDependency = new SingleAutocomposeDependency(factoryType);
+			var selfDependency = new SingletonAutocomposeDependency(factoryType);
 			InsertDependency(factoryType, selfDependency);
 			FactoryDependency<T> factoryDependency = new FactoryDependency<T>(selfDependency);
 			InsertDependency(dependencyType, factoryDependency);
@@ -279,23 +233,19 @@ namespace BehaviourInject
 			return this;
         }
 
-
-        public Context RegisterType<T>()
+        public Context RegisterSingleton<T>()
         {
             Type dependencyType = typeof(T);
-			InsertDependency(dependencyType, new SingleAutocomposeDependency(dependencyType));
+			InsertDependency(dependencyType, new SingletonAutocomposeDependency(dependencyType));
 			return this;
         }
-
-
-		public Context RegisterTypeAs<T, IT>() where T : IT
+		public Context RegisterSingletonAs<T, IT>() where T : IT
 		{
 			Type dependencyType = typeof(IT);
 			Type concreteType = typeof(T);
-			InsertDependency(dependencyType, new SingleAutocomposeDependency(concreteType));
+			InsertDependency(dependencyType, new SingletonAutocomposeDependency(concreteType));
 			return this;
 		}
-
 
 		public Context RegisterAsFunction<T1, T2>(Func<T1, T2> func)
 			where T1 : class
@@ -310,11 +260,10 @@ namespace BehaviourInject
 			return this;
 		}
 		
-		
 		public Context RegisterTypeAsMultiple<T>(params Type[] types)
 		{
 			Type concreteType = typeof(T);
-			IDependency dependency = new SingleAutocomposeDependency(concreteType);
+			IDependency dependency = new SingletonAutocomposeDependency(concreteType);
 			int length = types.Length;
 			
 			if(length == 0)
@@ -329,91 +278,49 @@ namespace BehaviourInject
 			return this;
 		}
 
-
 		private void ThrowIfNotAncestor(Type descent, Type ancestor)
 		{
 			if (!ancestor.IsAssignableFrom(descent))
 				throw new BehaviourInjectException("Can not register " + descent.FullName + " as " + ancestor.FullName + ": no ancestry");
 		}
 
-
-		public Context RegisterCommand<EventT, CommandT>() where CommandT : ICommand
-		{
-			Type eventType = typeof(EventT);
-			Type commandType = typeof(CommandT);
-
-			if (!_commandsByEvent.ContainsKey(eventType))
-			{
-				var newEntry = new CommandEntry(eventType);
-				_commandsByEvent.Add(eventType, newEntry);
-				_commands.Add(newEntry);
-#if BINJECT_DIAGNOSTICS
-				BinjectDiagnostics.CommandsCount++;
-#endif
-			}
-
-			CommandEntry entry = _commandsByEvent[eventType];
-			List<Type> commands = entry.CommandTypes;
-			if (commands.Contains(commandType))
-				throw new ContextCreationException(String.Format("Context {0} already contains command {1} on event {2}", _name, commandType, eventType));
-
-			commands.Add(commandType);
-			return this;
-		}
-
-
 		public object Resolve(Type resolvingType)
 		{
 			object dependency;
 
-			if(! TryResolve(resolvingType, out dependency))
+			if(!InternalResolve(resolvingType, out dependency))
 				throw new BehaviourInjectException(
 					String.Format("Can not resolve. Type {0} not registered in {1} context!", resolvingType.FullName, _name));
 
 			return dependency;
 		}
 
+		public T Resolve<T>() => (T)Resolve(typeof(T));
 
-	    public T Resolve<T>()
-	    {
-		    return (T) Resolve(typeof(T));
-	    }
-		
+		public bool TryResolve(Type resolvingType, out object dependency) => InternalResolve(resolvingType, 
+			out dependency);
 
-		public bool TryResolve(Type resolvingType, out object dependency)
-		{ return TryResolve(resolvingType, out dependency, 0); }
-
-
-		private bool TryResolve(Type resolvingType, out object dependency, int hierarchyDepthCount)
+		private bool InternalResolve(Type resolvingType,
+			out object dependency)
 		{
-			if (IsDestroyed)
-				throw new BehaviourInjectException(String.Format("Can not resolve {0}. Context {1} is destroyed.", resolvingType, _name));
+            if (IsDestroyed)
+                throw new BehaviourInjectException(String.Format("Can not resolve {0}. Context {1} is destroyed.", resolvingType, _name));
 
-			if (hierarchyDepthCount > MAX_HIERARCHY_DEPTH)
-				throw new BehaviourInjectException(String.Format("You have reached maximum hierarchy depth ({0}). Probably recursive dependencies are occured in {1}", MAX_HIERARCHY_DEPTH, resolvingType.FullName));
-			
-			hierarchyDepthCount++;
+            object parentDependency;
+            if (_dependencies.ContainsKey(resolvingType))
+                dependency = _dependencies[resolvingType].Resolve(this);
+            else if (_parentContext.TryResolve(resolvingType, out parentDependency))
+                dependency = parentDependency;
+            else
+            {
+                dependency = null;
+                return false;
+            }
 
-			object parentDependency;
-			if (_dependencies.ContainsKey(resolvingType))
-				dependency = _dependencies[resolvingType].Resolve(this);
-			else if (_parentContext.TryResolve(resolvingType, out parentDependency))
-				dependency = parentDependency;
-			else
-			{
-				dependency = null;
-				return false;
-			}
+            return true;
+        }
 
-			return true;
-		}
-
-
-		public object AutocomposeDependency(Type resolvingType)
-		{
-			return AutocomposeDependency(resolvingType, Array.Empty<object>());
-		}
-		
+		public object AutocomposeDependency(Type resolvingType) => AutocomposeDependency(resolvingType, Array.Empty<object>());
 		
 		public object AutocomposeDependency(Type resolvingType, object[] additions)
         {
@@ -459,7 +366,6 @@ namespace BehaviourInject
             return result;
         }
 
-
 		private bool TryFindAmongAdditions(Type wantedType, object[] additions, out object dependency)
 		{
 			dependency = null;
@@ -489,7 +395,6 @@ namespace BehaviourInject
 			}
 		}
 
-
         private ConstructorInfo FindAppropriateConstructor(Type resolvingType)
         {
             ConstructorInfo[] constructors = resolvingType.GetConstructors();
@@ -518,42 +423,41 @@ namespace BehaviourInject
             return constructorWithLeastArguments;
         }
 
-
-		public Context CreateAll()
+		public Context CompleteRegistration()
 		{
 			foreach (IDependency dependency in _listedDependencies)
 			{
 				dependency.Resolve(this);
 			}
+
 			return this;
 		}
-
         
         public void Destroy()
 		{
 			if (IsDestroyed)
 				return;
+
 			if(_isGlobal)
 				ContextRegistry.UnregisterContext(_name);
+
+			_children.Clear();
 
 			DisposeDependencies();
 
 #if BINJECT_DIAGNOSTICS
 			BinjectDiagnostics.DependenciesCount -= _listedDependencies.Count;
 			BinjectDiagnostics.RecipientCount -= _listedDependencies.Count;
-			BinjectDiagnostics.CommandsCount -= _commands.Count;
 #endif
 
-			_parentContext.OnContextDestroyed -= HandleParentDestroyed;
-			EventManager.ClearParent();
-			EventManager.RemoveTransmitter(this);
+            _parentContext.OnContextDestroyed -= HandleParentDestroyed;
+			EventManager.Dispose();
 
 			if (OnContextDestroyed != null)
 				OnContextDestroyed();
 
 			IsDestroyed = true;
         }
-
 
 		private void DisposeDependencies()
 		{
@@ -565,9 +469,53 @@ namespace BehaviourInject
 				}
 				catch (Exception e)
 				{
-					UnityEngine.Debug.LogError("During context dispose: " + e.Message + "\r\n" + e.StackTrace);
+					UnityEngine.Debug.LogError($"During context dispose: {e.Message}\r\n{e.StackTrace}");
 				}
 			}
 		}
-	}
+
+		#region IEventDispatcher
+
+		public void DispatchEvent<TEvent>(TEvent @event) => EventManager.DispatchEvent(@event);
+
+		#endregion
+
+        public void AutoSubscribeToEvents(object target)
+        {
+            Type targetType = target.GetType();
+            IEventBinder[] binders = ReflectionCache.GetEventBinderFor(targetType);
+            foreach (IEventBinder binder in binders)
+            {
+                try
+                {
+                    binder.Bind(target, this);
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogException(e);
+                }
+            }
+        }
+
+		#region IEventRegistry
+
+		public void Subscribe(Type eventType, Delegate handler, bool handleAllDerived)
+		{
+			EventManager.Subscribe(eventType: eventType, handler: handler, handleAllDerived: handleAllDerived, handleDerived: null);
+		}
+        	
+        public void Unsubscribe(Type eventType, Delegate handler)
+        	=> EventManager.Unsubscribe(eventType: eventType, handler: handler, filter: null);
+
+		public void Subscribe(Type eventType, Delegate handler, bool handleAllDerived, Type[] filter)
+		{
+			EventManager.Subscribe(eventType: eventType, handler: handler, handleAllDerived: handleAllDerived, handleDerived: filter);
+		}
+        
+		public void Unsubscribe(Type eventType, Delegate handler, Type[] filter)
+			=> EventManager.Unsubscribe(eventType: eventType, handler: handler, filter: filter);
+		
+		public void UnsubscribeTarget(object target) => EventManager.UnsubscribeTarget(target);
+		#endregion
+    }
 }

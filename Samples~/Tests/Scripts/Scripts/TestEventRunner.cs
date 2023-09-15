@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -14,9 +15,10 @@ namespace BehaviourInject.Test
 		public EventDuplicationSibling _eventDuplicationSibling;
 
 		[Inject]
-		public IEventDispatcher Dispatcher { get; private set; }
+		public IEventDispatcher Dispatcher { [DebuggerStepThrough] get;  private set;  }
+
 		[Inject]
-		public PrecomposeDependency Dependency { get; private set; }
+		public PrecomposeDependency Dependency { get;  private set; }
 
 		private void Start()
 		{
@@ -29,7 +31,7 @@ namespace BehaviourInject.Test
 			Assert.Equals(_recipient.evt2, evt, "beh event recieved");
 			Assert.Equals(_recipientSuccessor._fieldEvt, evt, "beh property event at successor recieved");
 			Assert.Equals(_recipientSuccessor._methodEvt, evt, "beh method event at successor recieved");
-			Assert.Equals(_eventDuplicationTest.EventCounter, 1, "events is not duplicated");
+			Assert.Equals(_eventDuplicationTest.EventCounter, 1, $"events is not duplicated. Expected: 1; actual: {_eventDuplicationTest.EventCounter}");
 			Assert.NotNull(_eventDuplicationSibling.Evt, "event duplication prevention does not block component siblings from events");
 		}
 	}

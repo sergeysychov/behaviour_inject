@@ -15,14 +15,14 @@ namespace BehaviourInject.Internal
 		private string[] _excludedNamespaces;
 
 		private Dictionary<Type, IMemberInjection[]> _behavioirInjections;
-		private Dictionary<Type, IEventHandler[]> _blindEvents;
+		private Dictionary<Type, IEventBinder[]> _blindEvents;
 
 		public ReflectionCache()
 		{
 			Settings settings = Settings.Load();
 			_excludedNamespaces = settings.ExcludedNames;
 			_behavioirInjections = new Dictionary<Type, IMemberInjection[]>();
-			_blindEvents = new Dictionary<Type, IEventHandler[]>();
+			_blindEvents = new Dictionary<Type, IEventBinder[]>();
 		}
 
 
@@ -98,13 +98,12 @@ namespace BehaviourInject.Internal
 		}
 
 
-		public IEventHandler[] GetEventHandlers(Type target)
+		public IEventBinder[] GetEventBinders(Type target)
 		{
-			IEventHandler[] handlers;
-			if (!_blindEvents.TryGetValue(target, out handlers))
+			if (!_blindEvents.TryGetValue(target, out IEventBinder[] binders))
 			{
-				handlers = GenerateEventHandlers(target);
-				_blindEvents[target] = handlers;
+				binders = GenerateEventBinders(target);
+				_blindEvents[target] = binders;
 
 #if BINJECT_DIAGNOSTICS
 				BinjectDiagnostics.CachedEventTargets++;
@@ -112,18 +111,19 @@ namespace BehaviourInject.Internal
 #endif
 			}
 
-			return handlers;
+			return binders;
 		}
 
 
-		private IEventHandler[] GenerateEventHandlers(Type target)
+		private IEventBinder[] GenerateEventBinders(Type target)
 		{
 			BindingFlags flags =
 				BindingFlags.Instance |
 				BindingFlags.Public |
+				BindingFlags.NonPublic |
 				BindingFlags.DeclaredOnly;
 
-			List<IEventHandler> events = new List<IEventHandler>();
+			List<IEventBinder> events = new List<IEventBinder>();
 
 			while (!IsIgnoredType(target))
 			{
@@ -143,7 +143,7 @@ namespace BehaviourInject.Internal
 					if (eventType.IsValueType)
 						throw new BehaviourInjectException(target.FullName + "." + methodInfo.Name + ": Injected event can not be a value type!");
 
-					events.Add(new MethodEventHandler(methodInfo, eventType));
+					events.Add(new MethodEventBinder(methodInfo, eventType));
 				}
 
 				FieldInfo[] fields = target.GetFields(flags);
@@ -164,7 +164,7 @@ namespace BehaviourInject.Internal
 							+ " delegate should have only one argument");
 
 					Type eventType = parameters[0].ParameterType;
-					events.Add(new DelegateEventHandler(fieldInfo, eventType));
+					events.Add(new DelegateEventBinder(fieldInfo, eventType));
 				}
 				target = target.BaseType;
 			}
@@ -209,12 +209,12 @@ namespace BehaviourInject.Internal
 			return _instance.GetInjectionsFor(type);
 		}
 
-		public static IEventHandler[] GetEventHandlersFor(Type target)
+		public static IEventBinder[] GetEventBinderFor(Type target)
 		{
 			if (_instance == null)
 				_instance = new ReflectionCache();
 
-			return _instance.GetEventHandlers(target);
+			return _instance.GetEventBinders(target);
 		}
 	}
 }

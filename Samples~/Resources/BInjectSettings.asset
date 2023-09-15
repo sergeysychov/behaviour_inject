@@ -22,3 +22,5 @@ MonoBehaviour:
   - System
   - UnityEngine
   - BehaviourInject.Test.TestIgnoreNamespace
+  <ThrowOnSubscriptionFailure>k__BackingField: 0
+  <EventManagerVerbosity>k__BackingField: 2

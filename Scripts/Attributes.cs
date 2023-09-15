@@ -38,10 +38,12 @@ namespace BehaviourInject
     public class CreateAttribute : Attribute
     { }
 
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Field)]
 	public class InjectEventAttribute : Attribute
 	{
-		//Defines if event ancestors is valid event receivers.
-		public bool Inherit { get; set; }
+		public bool HandleAllDerived { get; set; }
+		
+		public Type[] DerivedFilter { get; set; }
 	}
 
 
