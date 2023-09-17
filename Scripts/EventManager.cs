@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace BehaviourInject.Internal
 {
@@ -95,7 +91,12 @@ namespace BehaviourInject.Internal
 
             if (Settings.Instance.EventManagerVerbosity >= EventManagerVerbosity.Warn)
             {
-                UnityEngine.Debug.LogWarning($"Event type: {eventType} is not declared. Constructing delegate using reflection. Consider use AOT event declaration by calling: EventManager.DeclareEvent<{eventType}>();");
+                string message = $"Event type: {eventType} is not declared. Constructing delegate using reflection. Consider use AOT event declaration by calling: EventManager.DeclareEvent<{eventType}>();";
+#if UNITY
+                UnityEngine.Debug.LogWarning();
+#else
+                Console.Write(message);
+#endif
             }
 
             try
@@ -116,18 +117,30 @@ namespace BehaviourInject.Internal
             catch (Exception e)
             {
                 ApplicationException forwardException = new ApplicationException($"Unable to create Action<{eventType}> delegate. Consider use AOT event declaration by calling: EventManager.DeclareEvent<{eventType}>();", innerException: e);
+#if UNITY
                 UnityEngine.Debug.LogError(forwardException);
+#endif
 
                 throw forwardException;
             }
         }
 
-        private void DispatchEvent<TEvent>(ref TEvent @event, EventHandlers handlers)
+        private void DispatchEvent<TEvent>(ref TEvent @event, Type eventType, Type actualEventType, EventHandlers handlers)
         {
-            if (handlers is IFastEventHandlers<TEvent> fast)
+            if (actualEventType == eventType && (handlers is IFastEventHandlers<TEvent> fast))
             {
                 fast.Notify(@event);
-            } else if (handlers is ISlowEventHandlers slow)
+
+                return;
+            }
+            else if (handlers is IFastObjectEventHandlers fastObject)
+            {
+                fastObject.Notify(@event);
+
+                return;
+            }
+
+            if (handlers is ISlowEventHandlers slow)
             {
                 slow.Notify(@event);
             }
@@ -141,22 +154,23 @@ namespace BehaviourInject.Internal
                 throw new BehaviourInjectException("Dispatched event can not be null");
 
             Type eventType = typeof(TEvent);
+            Type actualEventType = eventType;
             if (!eventType.IsValueType)
             {
-                eventType = @event.GetType();
+                actualEventType = @event.GetType();
             }
 
-            if (_concreteToBaseInterceptorsMap.TryGetValue(eventType, out HashSet<Type> interceptorTypes))
+            if (_concreteToBaseInterceptorsMap.TryGetValue(actualEventType, out HashSet<Type> interceptorTypes))
             {
                 foreach (Type interceptorType in interceptorTypes)
                 { 
-                    DispatchEvent<TEvent>(ref @event, _derivedInterceptors[interceptorType]);
+                    DispatchEvent(ref @event, eventType, actualEventType, _derivedInterceptors[interceptorType]);
                 }
             }
 
-            if (_eventHandlers.TryGetValue(eventType, out EventHandlers handlers))
+            if (_eventHandlers.TryGetValue(actualEventType, out EventHandlers handlers))
             {
-                DispatchEvent(ref @event, handlers);
+                DispatchEvent(ref @event, eventType, actualEventType, handlers);
             }
 
             for (int i = 0; i < _attachedDispatchers.Count; i++)
@@ -201,8 +215,13 @@ namespace BehaviourInject.Internal
             }
             if (Settings.Instance.EventManagerVerbosity > EventManagerVerbosity.None)
             {
+#if UNITY
                 UnityEngine.Debug.LogError(message);
+#else
+                Console.WriteLine(message);
+#endif
             }
+
             return false;
         }
 
@@ -233,18 +252,21 @@ namespace BehaviourInject.Internal
             {
                 if (Settings.Instance.EventManagerVerbosity > EventManagerVerbosity.None)
                 {
-                    UnityEngine.Debug.LogWarning($"Possible excessive BOXING warning! You are subscribing to value type event. Consider declare event by calling EventManager.DeclareEvent<{eventType}>() to avoid boxing");
+                    string message = $"Possible excessive BOXING warning! You are subscribing to value type event. Consider declare event by calling EventManager.DeclareEvent<{eventType}>() to avoid boxing";
+#if UNITY
+                    UnityEngine.Debug.LogWarning(message);
+#else
+                    Console.WriteLine(message);
+#endif
                 }
             }
 
 
             return true;
         }
-        #endregion
+#endregion
 
         public void Subscribe(Type eventType, Delegate handler, bool handleAllDerived) => Subscribe(eventType, handler, handleAllDerived, handleDerived: null);
-
-
 
         private void SubscribeRefTypeEventHandler(Type eventType, Delegate handler, bool handleAllDerived, Type[] handleDerived)
         {
@@ -263,6 +285,8 @@ namespace BehaviourInject.Internal
                     if (!eventHandlersKp.Key.IsValueType && eventType.IsAssignableFrom(eventHandlersKp.Key))
                     {
                         eventHandlersKp.Value.Unsubscribe(handler);
+
+                        RegisterInterceptors(eventHandlersKp.Key);
                     }
                 }
 
@@ -377,7 +401,7 @@ namespace BehaviourInject.Internal
             _isDisposed = true;
             _eventHandlers.Clear();
         }
-        #endregion
+#endregion
 
         #region EventHandlers
         private interface ISlowEventHandlers
@@ -385,8 +409,18 @@ namespace BehaviourInject.Internal
             void Notify(object @event);
         }
 
-        private interface IFastEventHandlers<in TEvent>
+        private interface IFastObjectEventHandlers
         {
+            void Notify(object @event);
+        }
+
+        private interface IFastEventHandlers<TEvent>
+        {
+            void Notify(TEvent @event);
+        }
+
+        private interface ICaller<TEvent>
+        { 
             void Notify(TEvent @event);
         }
 
@@ -494,7 +528,12 @@ namespace BehaviourInject.Internal
                         }
                         catch(Exception e)
                         {
-                            UnityEngine.Debug.LogError($"Invoke handler: {e.Message}\r\n{e.StackTrace}");
+                            string message = $"Invoke handler: {e.Message}\r\n{e.StackTrace}";
+#if UNITY
+                            UnityEngine.Debug.LogError(message);
+#else
+                            Console.WriteLine(message);
+#endif
                         }
                         finally
                         {
@@ -633,7 +672,8 @@ namespace BehaviourInject.Internal
         }
 
         private sealed class FastEventHandlers<TEvent> : EventHandlers,
-            IFastEventHandlers<TEvent>
+            IFastEventHandlers<TEvent>,
+            IFastObjectEventHandlers
         {
             public FastEventHandlers(Queue<object[]> argsPool)
                 : base(argsPool) { }
@@ -669,7 +709,12 @@ namespace BehaviourInject.Internal
                         }
                         catch (Exception e)
                         {
-                            UnityEngine.Debug.LogError($"Invoke fast handler: {e.Message}\r\n{e.StackTrace}");
+                            string message = $"Invoke fast handler: {e.Message}\r\n{e.StackTrace}";
+#if UNITY
+                            UnityEngine.Debug.LogError(message);
+#else
+                            Console.WriteLine(message);
+#endif
                         }
                     }
                 }
@@ -683,6 +728,11 @@ namespace BehaviourInject.Internal
             }
 
             public void Notify(TEvent @event) => NotifyList(_listeners, ref @event);
+            void IFastObjectEventHandlers.Notify(object @event)
+            {
+                TEvent theEvent = (TEvent) @event;
+                NotifyList(_listeners, ref theEvent);
+            }
         }
 
         private struct Listener
@@ -724,9 +774,10 @@ namespace BehaviourInject.Internal
                 if (!wr.TryGetTarget(out T target)) return true;
 
                 if (object.ReferenceEquals(target, null)) return true;
-
+#if UNITY
                 if (target is UnityEngine.Object unityObject) 
                     return unityObject == null;
+#endif
 
                 return false;
             }
@@ -744,7 +795,7 @@ namespace BehaviourInject.Internal
                     && Object.Equals(handler, Handler);
             }
         }
-        #endregion
+#endregion
         #region Utility
         private class NamedObject
         {
