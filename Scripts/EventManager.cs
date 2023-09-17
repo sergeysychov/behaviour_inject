@@ -127,7 +127,7 @@ namespace BehaviourInject.Internal
 
         private void DispatchEvent<TEvent>(ref TEvent @event, Type eventType, Type actualEventType, EventHandlers handlers)
         {
-            if (actualEventType == eventType && (handlers is IFastEventHandlers<TEvent> fast))
+            if (handlers is IFastEventHandlers<TEvent> fast)
             {
                 fast.Notify(@event);
 
@@ -279,7 +279,13 @@ namespace BehaviourInject.Internal
                     _derivedInterceptors[eventType] = derivedHandlers;
                 }
                 derivedHandlers.AddListener(handler);
-
+                foreach (var eventHandlersKp in s_KnownEventHandlersFactory)
+                {
+                    if (!eventHandlersKp.Key.IsValueType && eventType.IsAssignableFrom(eventHandlersKp.Key))
+                    {
+                        RegisterInterceptors(eventHandlersKp.Key);
+                    }
+                }
                 foreach (var eventHandlersKp in _eventHandlers)
                 {
                     if (!eventHandlersKp.Key.IsValueType && eventType.IsAssignableFrom(eventHandlersKp.Key))
