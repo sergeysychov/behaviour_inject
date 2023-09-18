@@ -3,95 +3,67 @@ using System.Reflection;
 
 namespace BehaviourInject.Internal
 {
-	public interface IEventHandler
+	public interface IEventBinder
 	{
-		bool IsSuitableForEvent(Type dispatchedType);
-		void Invoke(object target, object evnt);
+		void Bind(object target, Context context);
 	}
 
-
-	public abstract class AbstractEventHandler
+	public abstract class AbstractEventBinder
 	{
-		private Type _eventType;
-		private bool _inherit;
+		protected Type _eventType;
+		protected Type[] _handleDerived;
+		protected bool _handleAllDerived;
 
-		public AbstractEventHandler(MemberInfo member, Type eventType)
+        public AbstractEventBinder(MemberInfo member, Type eventType)
 		{
 			_eventType = eventType;
-
-			InjectEventAttribute attribute;
-			if (AttributeUtils.TryGetAttribute(member, out attribute))
-				_inherit = attribute.Inherit;
-		}
-
-
-		public bool IsSuitableForEvent(Type dispatchedType)
-		{
-			if (_inherit)
-				return _eventType.IsAssignableFrom(dispatchedType);
-			else
-				return _eventType == dispatchedType;
+			 
+			if (AttributeUtils.TryGetAttribute(member, out InjectEventAttribute attribute))
+			{
+				_handleDerived = attribute.DerivedFilter;
+				_handleAllDerived = attribute.HandleAllDerived;
+			}
 		}
 	}
 
-	public class MethodEventHandler : AbstractEventHandler, IEventHandler
+	public class MethodEventBinder : AbstractEventBinder, IEventBinder
 	{
 		private MethodInfo _method;
-		private object[] _invocationParameters = new object[1];
 
-		public MethodEventHandler(MethodInfo method, Type eventType) : base(method, eventType)
+		public MethodEventBinder(MethodInfo method, Type eventType) : base(method, eventType)
 		{
 			_method = method;
 		}
 
-		public void Invoke(object target, object evnt)
-		{
-			_invocationParameters[0] = evnt;
+        public void Bind(object target, Context context)
+        {
+			Type delegateType = EventManager.GetDelegateType(_eventType);
+			Delegate handler = _method.CreateDelegate(delegateType, target);
 
-			try
-			{
-				_method.Invoke(target, _invocationParameters);
-			}
-			finally
-			{
-				_invocationParameters[0] = null;
-			}
-		}
-	}
+			context.Subscribe(_eventType, handler, _handleAllDerived, _handleDerived);
+        }
+    }
 
-
-	public class DelegateEventHandler : AbstractEventHandler, IEventHandler
+	public class DelegateEventBinder : AbstractEventBinder, IEventBinder
 	{
 		private FieldInfo _delegateField;
-		private object[] _invocationParameters = new object[1];
 
-		public DelegateEventHandler(FieldInfo delegateField, Type eventType)
+		public DelegateEventBinder(FieldInfo delegateField, Type eventType)
 			: base(delegateField, eventType)
 		{
 			_delegateField = delegateField;
 		}
 
-		public void Invoke(object target, object evnt)
-		{
-			MulticastDelegate receiver = (MulticastDelegate)_delegateField.GetValue(target);
-			if (receiver == null)
-				return;
+        public void Bind(object target, Context context)
+        {
+            Delegate handlers = (Delegate)_delegateField.GetValue(target);
+			
+			if (handlers is null) return;
 
-			_invocationParameters[0] = evnt;
-
-			try
+			foreach (Delegate handler in handlers.GetInvocationList())
 			{
-				Delegate[] delegates = receiver.GetInvocationList();
-				for (int i = 0; i < delegates.Length; i++)
-				{
-					Delegate d = delegates[i];
-					d.Method.Invoke(d.Target, _invocationParameters);
-				}
+				context.Subscribe(_eventType, handler, _handleAllDerived, _handleDerived);
 			}
-			finally
-			{
-				_invocationParameters[0] = null;
-			}
-		}
+        }
 	}
 }

@@ -15,7 +15,7 @@ namespace BehaviourInject.Test
 			{
 				_context = Context.CreateLocal()
 					.SetParentContext("test")
-					.RegisterDependency(new PrecomposeDependency("local"));
+					.RegisterSingleton(new PrecomposeDependency("local"));
 			}
 			return _context;
 		}

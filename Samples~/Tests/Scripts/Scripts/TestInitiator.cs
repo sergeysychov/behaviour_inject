@@ -1,6 +1,9 @@
-﻿using System;
+﻿using BehaviourInject.Internal;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace BehaviourInject.Test
@@ -18,28 +21,33 @@ namespace BehaviourInject.Test
 
 		private void Awake()
 		{
-			_precomposed = new PrecomposeDependency("test1");
+			EventManager.DeclareEvent<IEvent>();
+            EventManager.DeclareEvent<TestEvent>();
+
+            _precomposed = new PrecomposeDependency("test1");
 
 			Assert.False(Context.Exists("test"), "Context not exist check.");
-			
+
 			_contextTest = Context.Create("test")
-				.RegisterDependency(_precomposed)
-				.RegisterType<AutocomposeDependency>()
-				.RegisterTypeAs<DependencyImpl, IDependency>();
-			
+				.RegisterSingleton(_precomposed)
+				.RegisterSingleton<AutocomposeDependency>()
+				.RegisterSingletonAs<DependencyImpl, IDependency>()
+                .CompleteRegistration();
+
 			Assert.True(Context.Exists("test"), "Context exist check.");
 
-			_contextBase = Context.Create("base")
-				.SetParentContext("test")
-				.RegisterDependency(new PrecomposeDependency("base"))
-				.RegisterType<AutocomposeDependency>()
-				.RegisterDependency(_recipient);
+			_contextBase = Context.CreateChild("base", "test")
+				.RegisterSingleton(new PrecomposeDependency("base"))
+				.RegisterSingleton<AutocomposeDependency>()
+				.RegisterSingleton(_recipient)
+                .CompleteRegistration();
+
 		}
 
 
-		private IEnumerator Start()
+        private IEnumerator Start()
 		{
-			yield return new WaitForSeconds(0.5f);
+			yield return new WaitForSeconds(2.5f);
 #if BINJECT_DIAGNOSTICS
 			Debug.Log(Diagnostics.BinjectDiagnostics.GetDiagnosticStirng());
 #endif
@@ -90,7 +98,7 @@ namespace BehaviourInject.Test
 		}
 		
 
-		[InjectEvent(Inherit = true)]
+		[InjectEvent(HandleAllDerived = true)]
 		public void Handle(IEvent evt)
 		{
 			RecievedEvt = evt;

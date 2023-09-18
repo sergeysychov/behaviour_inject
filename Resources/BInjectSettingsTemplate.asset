@@ -17,3 +17,5 @@ MonoBehaviour:
   ExcludedNames:
   - System
   - UnityEngine
+  <ThrowOnSubscriptionFailure>k__BackingField: 1
+  <EventManagerVerbosity>k__BackingField: 3

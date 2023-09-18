@@ -14,25 +14,24 @@ namespace BehaviourInject.Test
 			InheritedDependency inherited = new InheritedDependency();
 			OverridenDependency parentDep = new OverridenDependency();
 			var parentContext = Context.Create(Context.DEFAULT)
-				.RegisterDependency(inherited)
-				.RegisterDependency(parentDep);
+				.RegisterSingleton(inherited)
+				.RegisterSingleton(parentDep);
 			
 			OverridenDependency siblingOverrideDep = new OverridenDependency();
 			ChildDependency siblingChildDep = new ChildDependency();
-			var siblingContext = Context.Create("green")
-				.SetParentContext(Context.DEFAULT)
-				.RegisterDependency(siblingOverrideDep)
-				.RegisterDependency(siblingChildDep);
+			var siblingContext = Context.CreateChild("green")
+				.RegisterSingleton(siblingOverrideDep)
+				.RegisterSingleton(siblingChildDep)
+                .CompleteRegistration();
 
 			OverridenDependency secondOverrideDep = new OverridenDependency();
 			ChildDependency childDep = new ChildDependency();
-			var secondContext = Context.Create("test")
-				.SetParentContext(Context.DEFAULT)
-				.RegisterDependency(secondOverrideDep)
-				.RegisterDependency(childDep);
+			var secondContext = Context.CreateChild("test", Context.DEFAULT, overrideEventManager: true)
+				.RegisterSingleton(secondOverrideDep)
+				.RegisterSingleton(childDep);
 			
-			var thirdContext = Context.Create("base")
-				.SetParentContext("test");
+			var thirdContext = Context.CreateChild("base", "test")
+                .CompleteRegistration();
 
 			Assert.Equals(inherited, secondContext.TestResolve<InheritedDependency>(), "inherit inherited 1gen dependency");
 			Assert.Equals(inherited, siblingContext.TestResolve<InheritedDependency>(), "inherit inherited 11gen dependency");
@@ -61,33 +60,32 @@ namespace BehaviourInject.Test
 			//events
 
 			Event evt = new Event();
-			//bool isReached = false;
-			//bool isReachedThird = false;
-			//bool isReachedParent = false;
+            
 			var wrong = new WrongTransmitter();
 			var parentContextTransmitter = new FlaggedTransmitter();
 			var secondContextTransmitter = new FlaggedTransmitter();
 			var thirdContextTransmitter = new FlaggedTransmitter();
 
-			parentContext.EventManager.AddTransmitter(wrong);
-			//secondContext.EventManager.EventInjectors += (e) => { isReached = true; };
-			secondContext.EventManager.AddTransmitter(secondContextTransmitter);
+			parentContext.EventManager.AttachDispatcher(wrong);
+			secondContext.EventManager.AttachDispatcher(secondContextTransmitter);
 			secondContext.TestResolve<IEventDispatcher>().DispatchEvent(evt);
+
 			Assert.True(secondContextTransmitter.IsReached, "inherit event reached child");
 			secondContextTransmitter.IsReached = false;
 
-			parentContext.EventManager.RemoveTransmitter(wrong);
-			parentContext.EventManager.AddTransmitter(parentContextTransmitter);
-			thirdContext.EventManager.AddTransmitter(thirdContextTransmitter);
+			parentContext.EventManager.DetachDispatcher(wrong);
+			parentContext.EventManager.AttachDispatcher(parentContextTransmitter);
+			thirdContext.EventManager.AttachDispatcher(thirdContextTransmitter);
+			
 			parentContext.TestResolve<IEventDispatcher>().DispatchEvent(evt);
+
 			Assert.True(
 				parentContextTransmitter.IsReached && 
 				secondContextTransmitter.IsReached && 
 				thirdContextTransmitter.IsReached, "inherit event reached all");
 
 			//destruction
-
-			thirdContext.Destroy();
+            thirdContext.Destroy();
 			Assert.False(secondContext.IsDestroyed || parentContext.IsDestroyed, "context child no inversive destruction");
 			parentContext.Destroy();
 			Assert.True(siblingContext.IsDestroyed && secondContext.IsDestroyed, "context child inherited destruction");
@@ -103,22 +101,21 @@ namespace BehaviourInject.Test
 		{ }
 
 
-		private class WrongTransmitter : EventTransmitter
-		{
-			public void TransmitEvent(object evt)
-			{
-				Assert.NotReached("parent context catched event from child");
-			}
+		private class WrongTransmitter : IEventDispatcher
+        {
+            public void DispatchEvent<TEvent>(TEvent evnt)
+            {
+                Assert.NotReached("parent context catched event from child");
+            }
 		}
 
-		private class FlaggedTransmitter : EventTransmitter
+		private class FlaggedTransmitter: IEventDispatcher
 		{
 			public bool IsReached { get; set; }
-
-			public void TransmitEvent(object evt)
+			public void DispatchEvent<TEvent>(TEvent evnt)
 			{
-				IsReached = true;
-			}
+                IsReached = true;
+            }
 		}
 	}
 }

@@ -33,7 +33,7 @@ using BehaviourInject.Diagnostics;
 namespace BehaviourInject
 {
 	[DisallowMultipleComponent]
-	public class Injector : MonoBehaviour, EventTransmitter
+	public class Injector : MonoBehaviour
     {
 		[SerializeField]
         private int _contextIndex = 0;
@@ -41,10 +41,7 @@ namespace BehaviourInject
         private bool _useHierarchy = false;
 
         private Context _context;
-		private EventManager _eventManager;
 		private MonoBehaviour[] _componentsCache;
-
-		private HashSet<Component> _detachedFromEvents;
 
         void Awake()
 		{
@@ -58,9 +55,6 @@ namespace BehaviourInject
 			}
 
 			_context.OnContextDestroyed += HandleContextDestroyed;
-			_eventManager = _context.EventManager;
-
-			_eventManager.AddTransmitter(this);
 
 			FindAndResolveDependencies();
 
@@ -111,13 +105,11 @@ namespace BehaviourInject
 			}
         }
 
-
         public void DelayedInject(MonoBehaviour behaviour)
         {
 	        _componentsCache = null;
 	        InjectToBehaviour(behaviour);
         }
-
         
         private void InjectToBehaviour(MonoBehaviour behaviour)
         {
@@ -129,73 +121,29 @@ namespace BehaviourInject
 			{
 				injection.Inject(behaviour, _context);
 			}
+			_context.AutoSubscribeToEvents(behaviour);
 		}
-
-
-		public void TransmitEvent(object blindEvent)
-		{
-			Type eventType = blindEvent.GetType();
-			if(_componentsCache == null)
-				_componentsCache = gameObject.GetComponents<MonoBehaviour>();
-
-			foreach (MonoBehaviour component in _componentsCache)
-			{
-				if (component == null || this == component)
-					continue;
-
-				if (DetachedFromEvents.Count > 0 && DetachedFromEvents.Contains(component))
-					continue;
-
-				Type componentType = component.GetType();
-				IEventHandler[] handlers = ReflectionCache.GetEventHandlersFor(componentType);
-				foreach (IEventHandler handler in handlers)
-				{
-					try
-					{
-						if (handler.IsSuitableForEvent(eventType))
-							handler.Invoke(component, blindEvent);
-					}
-					catch (Exception e)
-					{
-						Debug.LogException(e);
-					}
-				}
-			}
-		}
-
-
-		private HashSet<Component> DetachedFromEvents {
-			get {
-				if (_detachedFromEvents == null)
-					_detachedFromEvents = new HashSet<Component>();
-				return _detachedFromEvents;
-			}
-		}
-
 
 		void OnDestroy()
 		{
-			//_context might be not initialized in case of exception in Awake (e.g. context not found)
-			if (_context != null)
+            //_context might be not initialized in case of exception in Awake (e.g. context not found)
+            if (_context is not null)
 			{
-				_context.OnContextDestroyed -= HandleContextDestroyed;
-				_eventManager.RemoveTransmitter(this);
+                _context.OnContextDestroyed -= HandleContextDestroyed;
+
+                MonoBehaviour[] components = gameObject.GetComponents<MonoBehaviour>();
+				foreach (MonoBehaviour component in components)
+				{
+					_context.UnsubscribeTarget(component);
+				}
 			}
-			_eventManager = null;
-			_context = null;
+
+            _context = null;
 
 #if BINJECT_DIAGNOSTICS
 			BinjectDiagnostics.InjectorsCount--;
 			BinjectDiagnostics.RecipientCount -= _componentsCache.Length;
 #endif
-		}
-
-
-		public void SuppressEventsFor(Component component)
-		{
-			if (component.gameObject != this.gameObject)
-				throw new BehaviourInjectException("Can not suppress events for component on different GameObject");
-			DetachedFromEvents.Add(component);
 		}
 	}
 

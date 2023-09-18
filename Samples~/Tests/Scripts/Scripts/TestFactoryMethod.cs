@@ -13,7 +13,7 @@ namespace BehaviourInject.Test
             dependency.PropertyDependency = resultDependency;
             
             Context context = Context.Create("default")
-                .RegisterDependency(dependency)
+                .RegisterSingleton(dependency)
                 .RegisterAsFunction<ArgumentDependency, ResultDependency>(a => a.PropertyDependency);
             
             Assert.Equals(context.Resolve<ResultDependency>(), resultDependency, "Factory method dependency");

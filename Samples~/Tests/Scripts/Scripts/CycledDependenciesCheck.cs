@@ -9,9 +9,9 @@ namespace BehaviourInject.Test
             Context context = Context.Create();
 
             context
-                .RegisterType<CycledA>()
-                .RegisterType<CycledB>()
-                .RegisterType<CycledC>();
+                .RegisterSingleton<CycledA>()
+                .RegisterSingleton<CycledB>()
+                .RegisterSingleton<CycledC>();
 
             try
             {

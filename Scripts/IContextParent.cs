@@ -6,7 +6,6 @@ namespace BehaviourInject.Internal
 	{
 		bool TryResolve(Type resolvingType, out object dependency);
 		event Action OnContextDestroyed;
-		EventManager EventManager { get; }
 	}
 
 	internal class ParentContextStub : IContextParent
@@ -14,13 +13,6 @@ namespace BehaviourInject.Internal
 		public static readonly ParentContextStub STUB = new ParentContextStub();
 
 		public event Action OnContextDestroyed;
-
-		public EventManager EventManager { get; private set; }
-
-		public ParentContextStub()
-		{
-			EventManager = new EventManager();
-		}
 
 		public bool TryResolve(Type resolvingType, out object dependency)
 		{

@@ -12,8 +12,8 @@ namespace BehaviourInject.Test
 		void Start()
 		{
 			Context context = Context.Create()
-				.RegisterType<Dependency>()
-				.CreateAll();
+				.RegisterSingleton<Dependency>()
+				.CompleteRegistration();
 
 			GameObject gameObject = new GameObject("test_force_inject_holder");
 			gameObject.AddComponent<Injector>();
@@ -21,7 +21,7 @@ namespace BehaviourInject.Test
 			ForceInjectRecipient recipient = gameObject.AddComponent<ForceInjectRecipient>();
 			recipient.ForceInject();
 			Assert.NotNull(recipient.D, "force inject dependency at delayed component");
-			context.EventManager.TransmitEvent(new Event());
+			context.DispatchEvent(new Event());
 			Assert.NotNull(recipient.E, "inject event at delayed component");
 			context.Destroy();
 		}

@@ -36,16 +36,21 @@ namespace BehaviourInject.Internal
     {
         private static Dictionary<string, Context> _contextRegistry = new Dictionary<string, Context>();
 
-        public static void RegisterContext(string name, Context context)
-		{
-			if (ContextNameDoesntExist(name))
-				throw new ContextCreationException(String.Format("Context name \"{0}\" has to be enlisted in settings.", name));
-
-            if (context == null)
-				throw new ContextCreationException("You tried to register null context. Wait... why the heck are you even using this method???");
+        public static void ValidateContextName(string name)
+        {
+            if (ContextNameDoesntExist(name))
+                throw new ContextCreationException(String.Format("Context name \"{0}\" has to be enlisted in settings.", name));
 
             if (_contextRegistry.ContainsKey(name))
-				throw new ContextCreationException(String.Format("Context with name \"{0}\" already exists!", name));
+                throw new ContextCreationException(String.Format("Context with name \"{0}\" already exists!", name));
+
+        }
+
+        public static void RegisterContext(string name, Context context)
+		{
+			ValidateContextName(name);
+            if (context == null)
+				throw new ContextCreationException("You tried to register null context. Wait... why the heck are you even using this method???");
 
             _contextRegistry.Add(name, context);
 #if BINJECT_DIAGNOSTICS

@@ -3,7 +3,15 @@
 namespace BehaviourInject.Internal
 {
 
-	[CreateAssetMenu(fileName = "BInjectSettings", menuName = "BInject/Create Settings")]
+	public enum EventManagerVerbosity
+	{ 
+		None = 0,
+		Error = 1,
+		Warn = 2,
+		Info = 3
+	}
+
+    [CreateAssetMenu(fileName = "BInjectSettings", menuName = "BInject/Create Settings")]
 	public class Settings : ScriptableObject {
 
 		public const string SETTINGS_PATH = "BInjectSettings";
@@ -18,15 +26,29 @@ namespace BehaviourInject.Internal
 		[SerializeField]
 		public string[] ExcludedNames = { "System", "UnityEngine" };
 
-		private int[] _optiopnsIndexes;
+        [Tooltip("Policy to process invalid subscriptions.")]
+        [field:SerializeField]
+        public bool ThrowOnSubscriptionFailure { get; set; }
 
-		public static string[] GetContextNames()
+		[Tooltip("Policy to process invalid subscriptions.")]
+		[field: SerializeField]
+		public EventManagerVerbosity EventManagerVerbosity { get; set; }
+
+        private int[] _optiopnsIndexes;
+
+		public static string[] GetContextNames() => Instance.ContextNames;
+
+		public static Settings Instance 
 		{
-			if(_instance == null)
+			get
 			{
-				_instance = Load();
-			}
-			return _instance.ContextNames;
+                if (_instance == null)
+                {
+                    _instance = Load();
+                }
+
+				return _instance;
+            }
 		}
 
 

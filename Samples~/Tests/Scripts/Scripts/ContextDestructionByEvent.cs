@@ -10,19 +10,22 @@ namespace BehaviourInject.Test
     {
         void Start()
         {
-            Context parentContext = Context.Create("base");
-            Context childContext = Context.Create("test")
-                .SetParentContext("base");
+            Context parentContext = Context.Create("base")
+                .CompleteRegistration();
+
+            Context childContext = Context.CreateChild("test", "base");
             // to reproduce crash context that is being destroyed must have some event recipitents after it.
-            Context childContext2 = Context.Create("default")
-                .SetParentContext("base");
-            childContext.RegisterDependency(new EventRecipient(childContext));
-            parentContext.EventManager.TransmitEvent(new DestroyEvent());
+            Context childContext2 = Context.CreateChild("default", "base")
+                .CompleteRegistration();
+
+            childContext.RegisterSingleton(new EventRecipient(childContext))
+                .CompleteRegistration();
+
+            parentContext.DispatchEvent(new DestroyEvent());
             Assert.Reached("Safely destroyed context by event.");
 
             parentContext.Destroy();
         }
-
 
         private class EventRecipient
         {

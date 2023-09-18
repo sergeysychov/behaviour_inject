@@ -13,11 +13,11 @@ namespace BehaviourInject.Test
 			var simpleDep = new SimpleDependency();
 
 			var context = Context.Create()
-				.RegisterDependency(simpleDep)
-				.RegisterType<AutocomposedDependency>()
-				.RegisterType<DependencyInherited>()
+				.RegisterSingleton(simpleDep)
+				.RegisterSingleton<AutocomposedDependency>()
+				.RegisterSingleton<DependencyInherited>()
 				.RegisterDependencyAs<IDependencyImpl, IDependency>(new IDependencyImpl())
-				.RegisterTypeAs<IDependencyAutoImpl, IDependencyAuto>();
+				.RegisterSingletonAs<IDependencyAutoImpl, IDependencyAuto>();
 
 			Assert.NotNull(context.TestResolve<SimpleDependency>(), "resolve simple");
 			AutocomposedDependency auto = context.TestResolve<AutocomposedDependency>();

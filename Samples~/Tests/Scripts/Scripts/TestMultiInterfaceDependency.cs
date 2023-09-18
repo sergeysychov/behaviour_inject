@@ -13,10 +13,10 @@ namespace BehaviourInject.Test
 		{
 			Context context = Context.Create()
 				.RegisterTypeAsMultiple<MultipleInterfaceDependency>(typeof(InterfaceA), typeof(InterfaceB))
-				.RegisterType<Recipient>()
-				.CreateAll();
+				.RegisterSingleton<Recipient>()
+				.CompleteRegistration();
 			
-			context.EventManager.DispatchEvent(new Event());
+			context.DispatchEvent(new Event());
 
 			InterfaceA dependency = context.Resolve<InterfaceA>();
 			Assert.True(dependency.AlreadyNotified, "multi-interface dependency received event");
